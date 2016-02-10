@@ -104,22 +104,6 @@ void igvEscena3D::visualizar(void) {
 			}
 		}
 	glEnd();
-	
-		/*glPushMatrix();
-			glScalef(1,2,4);
-			glutSolidCube(1);
-		glPopMatrix();
-
-		glPushMatrix();
-			glRotatef(45,1,0,0);
-			glScalef(1,1,4.5);
-			pintar_tubo();
-		glPopMatrix();
-		glPushMatrix();
-			glRotatef(-45,1,0,0);
-			glScalef(1,1,4.5);
-			pintar_tubo();
-		glPopMatrix();*/
 
 	glPopMatrix (); // restaura la matriz de modelado
 }
