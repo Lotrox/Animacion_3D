@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include "igvEscena3D.h"
+#include "Util.h"
 
 // Metodos constructores 
 
@@ -10,9 +11,6 @@ igvEscena3D::igvEscena3D () {ejes = true;}
 
 igvEscena3D::~igvEscena3D() {}
 
-struct Point {
-	float x, y;
-};
 // Metodos publicos 
 
 void pintar_ejes(void) {
@@ -52,12 +50,7 @@ void pintar_tubo() {
   gluDeleteQuadric(tubo);
 }
 
-Point interpolacionLineal(float x, Point a, Point b) {
-	Point s;
-	s.x = x;
-	s.y = a.y + ((b.y - a.y) / (b.x - a.x))*(s.x - a.x);
-	return s;
-}
+
 
 void igvEscena3D::visualizar(void) {
 	
@@ -84,20 +77,22 @@ void igvEscena3D::visualizar(void) {
     GLfloat color_rojo[]={1,0,0};
 	GLfloat color_azul[] = {0,0,1};
     
-	
-	std::vector<Point> puntos(10);
-	puntos[0].x = -1; puntos[0].y = 2;
-	puntos[1].x = 0.2; puntos[1].y = 0.5;
-	puntos[2].x = 1; puntos[2].y = -1;
-	puntos[3].x = 2; puntos[3].y = 1;
+
+	Point* points = util::inputPoints();
+	for (int i = 0; i < util::TAM; i++) cout << points[i].x << " " << points[i].y << endl;
+
+	/*points[0].x = -2; points[0].y = 1.2;
+	points[1].x = 0.2; points[1].y = 0.8;
+	points[2].x = 1; points[2].y = -1.8;
+	points[3].x = 2; points[3].y = -0.1;*/
 
 	glPointSize(5.0f);
 	glBegin(GL_POINTS);
-		for (int c = 1; c < 5; c++){
+		for (int c = 1; c < util::TAM + 1; c++){
 			glMaterialfv(GL_FRONT, GL_EMISSION, color_rojo);
-			glVertex2f(puntos[c-1].x, puntos[c-1].y);
-			for (float i = puntos[c-1].x; i < puntos[c].x; i += 0.1) {
-				Point il = interpolacionLineal(i, puntos[c-1], puntos[c]);
+			glVertex2f(points[c-1].x, points[c-1].y);
+			for (float i = points[c-1].x; i < points[c].x; i += 0.02) {
+				Point il = util::interpolacionLineal(i, points[c-1], points[c]);
 				//std::cout << il.x << " " << il.y << std::endl;
 				glMaterialfv(GL_FRONT, GL_EMISSION, color_azul);
 				glVertex2f(il.x, il.y);
