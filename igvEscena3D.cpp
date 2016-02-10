@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <stdio.h>
-
+#include <vector>
+#include <iostream>
 #include "igvEscena3D.h"
 
 // Metodos constructores 
@@ -9,7 +10,9 @@ igvEscena3D::igvEscena3D () {ejes = true;}
 
 igvEscena3D::~igvEscena3D() {}
 
-
+struct Point {
+	float x, y;
+};
 // Metodos publicos 
 
 void pintar_ejes(void) {
@@ -49,6 +52,13 @@ void pintar_tubo() {
   gluDeleteQuadric(tubo);
 }
 
+Point interpolacionLineal(float x, Point a, Point b) {
+	Point s;
+	s.x = x;
+	s.y = a.y + ((b.y - a.y) / (b.x - a.x))*(s.x - a.x);
+	return s;
+}
+
 void igvEscena3D::visualizar(void) {
 	
 	/*Se crean las dos ecuaciones y planos de recorte.*/
@@ -71,10 +81,31 @@ void igvEscena3D::visualizar(void) {
 
 	  
 		// se pintan los objetos de la escena
-    GLfloat color_cubo[]={0,0.25,0};
-    glMaterialfv(GL_FRONT,GL_EMISSION,color_cubo);
+    GLfloat color_rojo[]={1,0,0};
+	GLfloat color_azul[] = {0,0,1};
+    
+	
+	std::vector<Point> puntos(10);
+	puntos[0].x = -1; puntos[0].y = 2;
+	puntos[1].x = 0.2; puntos[1].y = 0.5;
+	puntos[2].x = 1; puntos[2].y = -1;
+	puntos[3].x = 2; puntos[3].y = 1;
 
-		glPushMatrix();
+	glPointSize(5.0f);
+	glBegin(GL_POINTS);
+		for (int c = 1; c < 5; c++){
+			glMaterialfv(GL_FRONT, GL_EMISSION, color_rojo);
+			glVertex2f(puntos[c-1].x, puntos[c-1].y);
+			for (float i = puntos[c-1].x; i < puntos[c].x; i += 0.1) {
+				Point il = interpolacionLineal(i, puntos[c-1], puntos[c]);
+				//std::cout << il.x << " " << il.y << std::endl;
+				glMaterialfv(GL_FRONT, GL_EMISSION, color_azul);
+				glVertex2f(il.x, il.y);
+			}
+		}
+	glEnd();
+	
+		/*glPushMatrix();
 			glScalef(1,2,4);
 			glutSolidCube(1);
 		glPopMatrix();
@@ -88,7 +119,7 @@ void igvEscena3D::visualizar(void) {
 			glRotatef(-45,1,0,0);
 			glScalef(1,1,4.5);
 			pintar_tubo();
-		glPopMatrix();
+		glPopMatrix();*/
 
 	glPopMatrix (); // restaura la matriz de modelado
 }
