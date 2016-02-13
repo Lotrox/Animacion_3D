@@ -11,7 +11,7 @@
 using namespace std;
 
 struct Point {
-	float x, y;
+	float x, y, z;
 };
 
 namespace util {
@@ -22,6 +22,7 @@ namespace util {
 		Point s;
 		s.x = x;
 		s.y = a.y + ((b.y - a.y) / (b.x - a.x))*(s.x - a.x);
+		s.z = a.z + ((b.z - a.z) / (b.y - a.y))*(s.y - a.y);
 		return s;
 	}
 
@@ -38,8 +39,9 @@ namespace util {
 			points[i].x = data;
 			f >> data;
 			points[i].y = data;
+			f >> data;
+			points[i].z = data;
 		}
-		cout << "END" << endl;
 		return points;
 	}
 

@@ -90,12 +90,12 @@ void igvEscena3D::visualizar(void) {
 	glBegin(GL_POINTS);
 		for (int c = 1; c < util::TAM + 1; c++){
 			glMaterialfv(GL_FRONT, GL_EMISSION, color_rojo);
-			glVertex2f(points[c-1].x, points[c-1].y);
+			glVertex3f(points[c - 1].x, points[c - 1].y, points[c - 1].z);
 			for (float i = points[c-1].x; i < points[c].x; i += 0.02) {
 				Point il = util::interpolacionLineal(i, points[c-1], points[c]);
 				//std::cout << il.x << " " << il.y << std::endl;
 				glMaterialfv(GL_FRONT, GL_EMISSION, color_azul);
-				glVertex2f(il.x, il.y);
+				glVertex3f(il.x, il.y, il.z);
 			}
 		}
 	glEnd();
