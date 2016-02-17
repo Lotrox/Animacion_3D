@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "igvInterfaz.h"
+#include "Util.h"
 
 extern igvInterfaz interfaz; // los callbacks deben ser estaticos y se requiere este objeto para acceder desde
                              // ellos a las variables de la clase
@@ -31,16 +32,16 @@ void igvInterfaz::configura_entorno(int argc, char** argv,
 
 	// inicialización de la ventana de visualización
 	glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-  glutInitWindowSize(_ancho_ventana,_alto_ventana);
-  glutInitWindowPosition(_pos_X,_pos_Y);
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+	glutInitWindowSize(_ancho_ventana,_alto_ventana);
+	glutInitWindowPosition(_pos_X,_pos_Y);
 	glutCreateWindow(_titulo.c_str());
 
 	glEnable(GL_DEPTH_TEST); // activa el ocultamiento de superficies por z-buffer
-  glClearColor(1.0,1.0,1.0,0.0); // establece el color de fondo de la ventana
+	glClearColor(1.0,1.0,1.0,0.0); // establece el color de fondo de la ventana
 
 	glEnable(GL_LIGHTING); // activa la iluminacion de la escena
-  glEnable(GL_NORMALIZE); // normaliza los vectores normales para calculo iluminacion
+	glEnable(GL_NORMALIZE); // normaliza los vectores normales para calculo iluminacion
 
 	crear_mundo(); // crea el mundo a visualizar en la ventana
 }
@@ -55,6 +56,9 @@ void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
 	   de los objetos de la aplicación, pero no hacer llamadas directas a funciones de OpenGL */
 
 	switch (key) {
+	case 'r': // cambia el tipo de proyección de paralela a perspectiva y viceversa
+		interfaz.escena.slerpRand();
+		break;
     case 'p': // cambia el tipo de proyección de paralela a perspectiva y viceversa
 		if(interfaz.camara.tipo==IGV_PARALELA){
 			interfaz.camara.set(IGV_PERSPECTIVA, interfaz.camara.P0,interfaz.camara.r,interfaz.camara.V,
@@ -109,7 +113,7 @@ void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
 			interfaz.camara.multiples = true;
 		}
 	  break;
-    case 'r': // obtener sección del modelo
+    case 'R': // obtener sección del modelo
 		
 		 if(!interfaz.recortar){
             glEnable(GL_CLIP_PLANE0);
@@ -132,10 +136,10 @@ void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
 }
 
 void igvInterfaz::set_glutReshapeFunc(int w, int h) {
-  // dimensiona el viewport al nuevo ancho y alto de la ventana
-  // guardamos valores nuevos de la ventana de visualizacion
-  interfaz.set_ancho_ventana(w);
-  interfaz.set_alto_ventana(h);
+	  // dimensiona el viewport al nuevo ancho y alto de la ventana
+	  // guardamos valores nuevos de la ventana de visualizacion
+	 interfaz.set_ancho_ventana(w);
+	 interfaz.set_alto_ventana(h);
 
 	// establece los parámetros de la cámara y de la proyección
 	interfaz.camara.aplicar();

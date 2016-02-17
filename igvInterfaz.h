@@ -4,6 +4,7 @@
 #include <GL/glut.h>
 #include <string>
 
+#include "Util.h"
 #include "igvEscena3D.h"
 #include "igvCamara.h"
 

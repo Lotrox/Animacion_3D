@@ -1,5 +1,4 @@
 #include <cstdlib>
-
 #include "igvInterfaz.h"
 
 // Objetos globales
@@ -11,7 +10,7 @@ int main (int argc, char** argv) {
 	interfaz.configura_entorno(argc,argv,
 		                         500,500, // tamaño de la ventana
 														 100,100, // posicion de la ventana
-														 "Informática Gráfica y Visualización. Práctica 2B." // título de la ventana
+														 "Animacion 3D - PR1." // título de la ventana
 														 );
 
 	// establece las funciones callbacks para la gestión de los eventos

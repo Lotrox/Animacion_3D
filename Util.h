@@ -6,6 +6,11 @@
 #include <sstream>
 #include <fstream>
 #include <string>
+#include <windows.h>
+#include <stdio.h>
+#include <math.h>
+#include <GL/gl.h>
+#include <GL/glut.h>
 #include <vector>
 
 using namespace std;
@@ -18,7 +23,7 @@ namespace util {
 
 	static int TAM = 0;
 
-	Point interpolacionLineal(float x, Point a, Point b) {
+	static Point interpolacionLineal(float x, Point a, Point b) {
 		Point s;
 		s.x = x;
 		s.y = a.y + ((b.y - a.y) / (b.x - a.x))*(s.x - a.x);
@@ -26,7 +31,7 @@ namespace util {
 		return s;
 	}
 
-	Point* inputPoints() {
+	static Point* inputPoints() {
 		float data;
 		string fich = "INPUT.txt";
 		ifstream f(fich.c_str(), std::ifstream::in);
@@ -44,8 +49,6 @@ namespace util {
 		}
 		return points;
 	}
-
-
 }
 
 #endif	/* UTIL_H */

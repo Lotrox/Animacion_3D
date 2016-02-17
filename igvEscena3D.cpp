@@ -3,8 +3,9 @@
 #include <vector>
 #include <iostream>
 #include "igvEscena3D.h"
-#include "Util.h"
 
+#define M_PI 3.14159265
+#define toRad(x) ((x)*(M_PI/180.0))
 // Metodos constructores 
 
 igvEscena3D::igvEscena3D () {ejes = true;}
@@ -53,14 +54,7 @@ void pintar_tubo() {
 
 
 void igvEscena3D::visualizar(void) {
-	
-	/*Se crean las dos ecuaciones y planos de recorte.*/
-	  GLdouble pl1[]={-1, 0, 0, 0.001};
-	  GLdouble pl2[]={ 0, 0, 1, 0.001};
-	  glClipPlane(GL_CLIP_PLANE0, pl1);
-	  glClipPlane(GL_CLIP_PLANE1, pl2);
-	
-	
+	  
 	// crear luces
   GLfloat luz0[]={10,8,9,1}; // luz puntual
   glLightfv(GL_LIGHT0,GL_POSITION,luz0);
@@ -72,19 +66,82 @@ void igvEscena3D::visualizar(void) {
 	  // se pintan los ejes
 	  if (ejes) pintar_ejes();
 
-	  
 		// se pintan los objetos de la escena
     GLfloat color_rojo[]={1,0,0};
 	GLfloat color_azul[] = {0,0,1};
-    
 
-	Point* points = util::inputPoints();
+	
+	glMaterialfv(GL_FRONT, GL_EMISSION, color_rojo);
+	
+	GLfloat m[16];
+	double s = 1.0;
+	Point3D a, b;
+	a.x = -0.5; a.y = -0.5; a.z = 0;
+	b.x = 0.2; b.y = 0.5; b.z = 0;
+	static Slerp sl(a,b);
+
+	glMaterialfv(GL_FRONT, GL_EMISSION, color_azul);
+
+
+	if (sR) {
+		sl.randPoints();
+		cout << "P(" << sl.p.x << ", " << sl.p.x << ", " << sl.p.z << ")" << endl;
+		cout << "Q(" << sl.q.x << ", " << sl.q.x << ", " << sl.q.z << ")" << endl;
+		cout << endl;
+		sl.lambdaanim = 0;
+		slerpRand();
+	}
+
+
+	glColor3f(0, 0, 1);
+	glPointSize(10);
+	glBegin(GL_POINTS);
+	glVertex3f(sl.p.x, sl.p.y, sl.p.z);
+	glEnd();
+
+	glColor3f(1, 0, 1);
+	glBegin(GL_POINTS);
+	glVertex3f(sl.q.x, sl.q.y, sl.q.z);
+	glEnd();
+
+	Quaternion quatp, quatq, quatr;
+
+	quatp.u = sl.p; quatp.w = 0;
+	quatq.u = sl.q; quatq.w = 0;
+	//glutSolidSphere(0.99, 32, 32);
+	glBegin(GL_LINE_STRIP);
+	for (double lambda = 0; lambda <= 1.01; lambda += 0.01)
+	{
+		//glLoadIdentity();
+		//Quaternion rp = RotateAboutAxis(a, 2.0*lambda*M_PI / 1000.0, b);
+		sl.makeSlerp(quatp, quatq, quatr, lambda);
+		quatr.ExportToMatrix(m);
+		MultiplyPointMatrix(m, sl.p, sl.Rp);
+		glVertex3f(s*sl.Rp.x, s*sl.Rp.y, s*sl.Rp.z);
+	}
+	glEnd();
+
+	sl.lambdaanim += 0.0001;
+	if (sl.lambdaanim>1.0) sl.lambdaanim = 0.0;
+
+	sl.makeSlerp(quatp, quatq, quatr, sl.lambdaanim);
+
+	//glLoadIdentity();
+	double angle = 20;
+	//Quaternion rp = RotateAboutAxis(a, toRad(angle), b);
+	quatr.ExportToMatrix(m);
+	MultiplyPointMatrix(m, sl.p, sl.Rp);
+	glMaterialfv(GL_FRONT, GL_EMISSION, color_rojo);
+	glPointSize(5);
+	
+	glBegin(GL_POINTS);
+		glVertex3f(s*sl.Rp.x, s*sl.Rp.y, s*sl.Rp.z);
+	glEnd();
+
+	glutPostRedisplay();
+	
+	/*Point* points = util::inputPoints();
 	for (int i = 0; i < util::TAM; i++) cout << points[i].x << " " << points[i].y << endl;
-
-	/*points[0].x = -2; points[0].y = 1.2;
-	points[1].x = 0.2; points[1].y = 0.8;
-	points[2].x = 1; points[2].y = -1.8;
-	points[3].x = 2; points[3].y = -0.1;*/
 
 	glPointSize(5.0f);
 	glBegin(GL_POINTS);
@@ -98,7 +155,7 @@ void igvEscena3D::visualizar(void) {
 				glVertex3f(il.x, il.y, il.z);
 			}
 		}
-	glEnd();
+	glEnd();*/
 
 	glPopMatrix (); // restaura la matriz de modelado
 }
