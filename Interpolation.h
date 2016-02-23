@@ -193,5 +193,11 @@ static void MultiplyPointMatrix(float m[16], Point3D p, Point3D& rotp)
 	rotp.z = m[8] * p.x + m[9] * p.y + m[10] * p.z;
 }
 
+static void make_lerp(Point3D q1, Point3D q2, Point3D& r, float alpha) {
+	r.x = (1 - alpha)*q1.x + q2.x*alpha;
+	r.y = (1 - alpha)*q1.y + q2.y*alpha;
+	r.z = (1 - alpha)*q1.z + q2.z*alpha;
+}
+
 
 #endif	/* INTERPOLATION_H */

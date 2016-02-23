@@ -8,7 +8,10 @@
 #define toRad(x) ((x)*(M_PI/180.0))
 // Metodos constructores 
 
-igvEscena3D::igvEscena3D () {ejes = true;}
+igvEscena3D::igvEscena3D () {
+	ejes = true;
+	util::inputPoints(points, frames);
+}
 
 igvEscena3D::~igvEscena3D() {}
 
@@ -72,18 +75,31 @@ void igvEscena3D::visualizar(void) {
 
 	
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_rojo);
-	
+
+
 	GLfloat m[16];
 	double s = 1.0;
-	Point3D a, b;
-	a.x = -0.5; a.y = -0.5; a.z = 0;
-	b.x = 0.2; b.y = 0.5; b.z = 0;
-	static Slerp sl(a,b);
+	
+	
+	static float lambda = 0;
+	static int keyFrame = 0;
+	Point3D r;
+	static Slerp sl(points[keyFrame], points[keyFrame + 1]);
 
-	glMaterialfv(GL_FRONT, GL_EMISSION, color_azul);
-
-
-	if (sR) {
+	
+	if (lambda > 1) {
+		lambda = 0;
+		if (keyFrame + 2  < util::TAM) keyFrame++;
+		else keyFrame = 0;
+		cout << "Frame: " << keyFrame << "-" << keyFrame + 1 << endl;
+		
+	};
+	lambda += 1.0 / (frames[keyFrame + 1] - frames[keyFrame]);
+	make_lerp(points[keyFrame], points[keyFrame+1], r, lambda);
+	ant.trasladarCuerpo(r.x, r.y, r.z);
+	ant.visualizar(0.1);
+	
+	/*if (sR) {
 		sl.randPoints();
 		cout << "P(" << sl.p.x << ", " << sl.p.x << ", " << sl.p.z << ")" << endl;
 		cout << "Q(" << sl.q.x << ", " << sl.q.x << ", " << sl.q.z << ")" << endl;
@@ -134,14 +150,17 @@ void igvEscena3D::visualizar(void) {
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_rojo);
 	glPointSize(5);
 	
+	ant.trasladarCuerpo(s*sl.Rp.x, s*sl.Rp.y, s*sl.Rp.z);
+	ant.visualizar(0.1);
+
 	glBegin(GL_POINTS);
 		glVertex3f(s*sl.Rp.x, s*sl.Rp.y, s*sl.Rp.z);
-	glEnd();
+	glEnd();*/
 
 	glutPostRedisplay();
 	
-	/*Point* points = util::inputPoints();
-	for (int i = 0; i < util::TAM; i++) cout << points[i].x << " " << points[i].y << endl;
+	
+	/*for (int i = 0; i < util::TAM; i++) cout << points[i].x << " " << points[i].y << endl;
 
 	glPointSize(5.0f);
 	glBegin(GL_POINTS);

@@ -4,12 +4,16 @@
 #include <GL/glut.h>
 #include "Util.h"
 #include "Interpolation.h"
+#include "Hormiga.h"
 
 class igvEscena3D {
 	protected:
 		// Atributos
 		bool ejes;
 		bool sR;
+		Point3D* points;
+		float* frames;
+		Hormiga ant;
 	public:
 		// Constructores por defecto y destructor
 		igvEscena3D();
