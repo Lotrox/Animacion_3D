@@ -57,52 +57,54 @@ void pintar_tubo() {
 
 
 void igvEscena3D::visualizar(void) {
-	  
+
 	// crear luces
-  GLfloat luz0[]={10,8,9,1}; // luz puntual
-  glLightfv(GL_LIGHT0,GL_POSITION,luz0);
-  glEnable(GL_LIGHT0);
+	GLfloat luz0[] = { 10,8,9,1 }; // luz puntual
+	glLightfv(GL_LIGHT0, GL_POSITION, luz0);
+	glEnable(GL_LIGHT0);
 
 	// crear el modelo
 	glPushMatrix(); // guarda la matriz de modelado
 
 	  // se pintan los ejes
-	  if (ejes) pintar_ejes();
+	if (ejes) pintar_ejes();
 
-		// se pintan los objetos de la escena
-    GLfloat color_rojo[]={1,0,0};
-	GLfloat color_azul[] = {0,0,1};
+	// se pintan los objetos de la escena
+	GLfloat color_rojo[] = { 1,0,0 };
+	GLfloat color_azul[] = { 0,0,1 };
+	GLfloat color_negro[] = { 0,0,0 };
 
-	
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_rojo);
 
 
-	
-	
+
+
 	/*LERP STUFFs*/
 	static float lambda = 0;
 	static int keyFrame = 0;
 	Point3D r;
-	
+
 	if (lambda > 1) {
 		lambda = 0;
-		if (keyFrame + 2  < util::TAM) keyFrame++;
+		if (keyFrame + 2 < util::TAM) keyFrame++;
 		else keyFrame = 0;
 		cout << "Frame: " << keyFrame << "-" << keyFrame + 1 << endl;
 	};
 	lambda += 1.0 / (frames[keyFrame + 1] - frames[keyFrame]);
-	make_lerp(points[keyFrame], points[keyFrame+1], r, lambda);
+	make_lerp(points[keyFrame], points[keyFrame + 1], r, lambda);
 
 	/*Recorrido a seguir*/
-	glColor3f(1, 1, 0);
+	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
 	glPointSize(1.0);
 	Point3D r2;
 	glBegin(GL_LINE_STRIP);
-	for (double lambd = 0; lambd <= 1.01; lambd += 0.01)
-	{
-		make_lerp(points[keyFrame], points[keyFrame + 1], r2, lambd);
-		glVertex3f(r2.x, r2.y, r2.z);
-	}
+	for (int i = 0; i < util::TAM-1; i++) {
+		for (double lambd = 0; lambd <= 1.01; lambd += 0.01)
+		{
+			make_lerp(points[i], points[i + 1], r2, lambd);
+			glVertex3f(r2.x, r2.y, r2.z);
+		}
+		}
 	glEnd();
 
 	float* test = new float[16];
@@ -122,14 +124,10 @@ void igvEscena3D::visualizar(void) {
 	quatR.Normalize();
 	quatR.ExportToMatrix(m);
 
-	/*static Slerp sl(points[keyFrame], points[keyFrame + 1]);
-	Quaternion quatp, quatq, quatr;
-	quatp.u = sl.p; quatp.w = 0;
-	quatq.u = sl.q; quatq.w = 0;
-	*/
-	float rate = 0.8;
-	if ((keyFrame + 2 < util::TAM) && (lambda >= rate)) {
+	float rate = 0.7;
+	if ((keyFrame + 2 < util::TAM) && (lambda > rate)) {
 		float w2 = CalculateAngle(points[keyFrame + 1], points[keyFrame + 2]);
+
 		Point3D rot2;
 		rot2.x = 0; rot2.y = 1; rot2.z = 0;
 		Quaternion quatR2(w2, rot2);
@@ -140,13 +138,8 @@ void igvEscena3D::visualizar(void) {
 		Slerp ss;
 		static float t = 0;
 		if (t > 1) t = 0;
-		t = 2 * (lambda - rate)/(1 - rate);
-		if ((quatR.w - quatR2.w) > (quatR.w + quatR2.w)) {
-			quatR2.u.y *= -1;
-			quatR2.w *= -1;
-		}
-		cout << w << " - " << w2 << endl;
-		//if ((quatR.w - quatR2.w) > (quatR.w + quatR2.w)) quatR2.w = -quatR2.w;
+		t = (lambda - rate)/(1 - rate);
+
 	    ss.makeSlerp(quatR, quatR2, quatR3, t);
 
 		quatR3.ExportToMatrix(m);
