@@ -12,7 +12,7 @@ class Hormiga {
 		Hormiga();
 		~Hormiga();
 
-    void visualizar(float size = 1);
+    void visualizar(float* matrix, float size = 1);
      
     
     void rotarCuerpo(const float& valor);

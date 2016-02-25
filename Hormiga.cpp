@@ -234,19 +234,16 @@ Hormiga::~Hormiga() {
 }
 
 
-void Hormiga::visualizar(float size) {
+void Hormiga::visualizar(float* matrix, float size) {
     // crear luces
     GLfloat luz0[4]={5.0,5.0,5.0,1}; // luz puntual
     glLightfv(GL_LIGHT0,GL_POSITION,luz0); // la luz se coloca aquÌ si permanece fija y no se mueve con la escena
     glEnable(GL_LIGHT0);
-    
-    // crear el modelo
-    glPushMatrix(); // guarda la matriz de modelado
-    
-    // se pintan los ejes
-    
+	glPushMatrix(); // guarda la matriz de modelado
+
+	glMultMatrixf(matrix);
 	glScaled(size, size, size);
-	glTranslatef(0,1.8,0);
+	
     miHormiga.visualizar();
     
     glPopMatrix (); // restaura la matriz de modelado

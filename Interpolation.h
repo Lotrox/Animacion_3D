@@ -29,12 +29,42 @@ class Point3D
 {
 public:
 	double x, y, z;
+
+    void Normalize()
+	{
+		double norm = sqrt(x*x + y*y + z*z);
+		x /= norm; y /= norm; z /= norm;
+	}
+
 };
 
 class Quaternion {
 public:
 	double w;
 	Point3D u;
+
+	Quaternion() {}
+
+	Quaternion(double t, Point3D p) {
+		p.Normalize();
+		u = p;
+		float uv = sqrt(u.x*u.x + u.y*u.y + u.z*u.z);
+		w = cos(t / 2);
+		u.x = sin(t / 2)*u.x/uv;
+		u.y = sin(t / 2)*u.y/uv;
+		u.z = sin(t / 2)*u.z/uv;
+	}
+
+	Quaternion(const Quaternion& q) {
+		w = q.w;
+		u = q.u;
+	}
+
+	Quaternion& operator=(const Quaternion& q) {
+		w = q.w;
+		u = q.u;
+		return *this;
+	}
 
 	inline void Multiply(const Quaternion q)
 	{
@@ -118,6 +148,7 @@ public:
 	Point3D p, q, Rp;
 	double lambdaanim = 0.0;
 
+	Slerp() {}
 	Slerp(Point3D _p, Point3D _q) { p = _p; q = _q; }
 
 	void makeSlerp(Quaternion q1, Quaternion q2, Quaternion &qr, double lambda)
@@ -185,6 +216,21 @@ static Quaternion RotateAboutAxis(Point3D pt, double angle, Point3D axis)
 }
 
 
+
+
+static float CalculateAngle(Point3D a, Point3D b) {
+	Point3D c;
+	c.x = b.x - a.x;
+	c.y = b.y - a.y;
+	c.z = b.z - a.z;
+
+	c.Normalize();
+	
+	//cout << c.x << " " << c.y << " " << c.z << endl;
+
+	//float h = sqrt(pow(c.x, 2) + pow(c.z, 2));
+	return atan2(-c.z, c.x);
+}
 
 static void MultiplyPointMatrix(float m[16], Point3D p, Point3D& rotp)
 {

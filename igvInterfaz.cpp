@@ -19,7 +19,7 @@ igvInterfaz::~igvInterfaz () {}
 void igvInterfaz::crear_mundo(void) {
 	// crear cámaras
 	interfaz.camara.set(IGV_PARALELA, igvPunto3D(3.0,2.0,4),igvPunto3D(0,0,0),igvPunto3D(0,1.0,0),
-		                                -1*3, 1*3, -1*3, 1*3, -1*3, 200);
+		                                -16, 16, -9, 9, -200, 200);
 }
 
 void igvInterfaz::configura_entorno(int argc, char** argv,

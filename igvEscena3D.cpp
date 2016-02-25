@@ -77,85 +77,88 @@ void igvEscena3D::visualizar(void) {
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_rojo);
 
 
-	GLfloat m[16];
-	double s = 1.0;
 	
 	
+	/*LERP STUFFs*/
 	static float lambda = 0;
 	static int keyFrame = 0;
 	Point3D r;
-	static Slerp sl(points[keyFrame], points[keyFrame + 1]);
-
 	
 	if (lambda > 1) {
 		lambda = 0;
 		if (keyFrame + 2  < util::TAM) keyFrame++;
 		else keyFrame = 0;
 		cout << "Frame: " << keyFrame << "-" << keyFrame + 1 << endl;
-		
 	};
 	lambda += 1.0 / (frames[keyFrame + 1] - frames[keyFrame]);
 	make_lerp(points[keyFrame], points[keyFrame+1], r, lambda);
-	ant.trasladarCuerpo(r.x, r.y, r.z);
-	ant.visualizar(0.1);
-	
-	/*if (sR) {
-		sl.randPoints();
-		cout << "P(" << sl.p.x << ", " << sl.p.x << ", " << sl.p.z << ")" << endl;
-		cout << "Q(" << sl.q.x << ", " << sl.q.x << ", " << sl.q.z << ")" << endl;
-		cout << endl;
-		sl.lambdaanim = 0;
-		slerpRand();
+
+	/*Recorrido a seguir*/
+	glColor3f(1, 1, 0);
+	glPointSize(1.0);
+	Point3D r2;
+	glBegin(GL_LINE_STRIP);
+	for (double lambd = 0; lambd <= 1.01; lambd += 0.01)
+	{
+		make_lerp(points[keyFrame], points[keyFrame + 1], r2, lambd);
+		glVertex3f(r2.x, r2.y, r2.z);
 	}
-
-
-	glColor3f(0, 0, 1);
-	glPointSize(10);
-	glBegin(GL_POINTS);
-	glVertex3f(sl.p.x, sl.p.y, sl.p.z);
 	glEnd();
 
-	glColor3f(1, 0, 1);
-	glBegin(GL_POINTS);
-	glVertex3f(sl.q.x, sl.q.y, sl.q.z);
-	glEnd();
+	float* test = new float[16];
+	test[0] = 1; test[1] = 0; test[2] = 0; test[3] = 0;
+	test[4] = 0; test[5] = 1; test[6] = 0; test[7] = 0;
+	test[8] = 0; test[9] = 0; test[10] = 1; test[11] = 0;
+	test[12] = r.x; test[13] = r.y; test[14] = r.z; test[15] = 1;
+	
+	
+	/*SLERP STUFFs*/
+	GLfloat m[16], mm[16];
+	
+	float w = CalculateAngle(points[keyFrame], points[keyFrame + 1]);
+	Point3D rot;
+	rot.x = 0; rot.y = 1; rot.z = 0;
+	Quaternion quatR(w, rot);
+	quatR.Normalize();
+	quatR.ExportToMatrix(m);
 
+	/*static Slerp sl(points[keyFrame], points[keyFrame + 1]);
 	Quaternion quatp, quatq, quatr;
-
 	quatp.u = sl.p; quatp.w = 0;
 	quatq.u = sl.q; quatq.w = 0;
-	//glutSolidSphere(0.99, 32, 32);
-	glBegin(GL_LINE_STRIP);
-	for (double lambda = 0; lambda <= 1.01; lambda += 0.01)
-	{
-		//glLoadIdentity();
-		//Quaternion rp = RotateAboutAxis(a, 2.0*lambda*M_PI / 1000.0, b);
-		sl.makeSlerp(quatp, quatq, quatr, lambda);
-		quatr.ExportToMatrix(m);
-		MultiplyPointMatrix(m, sl.p, sl.Rp);
-		glVertex3f(s*sl.Rp.x, s*sl.Rp.y, s*sl.Rp.z);
+	*/
+	float rate = 0.8;
+	if ((keyFrame + 2 < util::TAM) && (lambda >= rate)) {
+		float w2 = CalculateAngle(points[keyFrame + 1], points[keyFrame + 2]);
+		Point3D rot2;
+		rot2.x = 0; rot2.y = 1; rot2.z = 0;
+		Quaternion quatR2(w2, rot2);
+		quatR2.Normalize();
+		Quaternion quatR3;
+		quatR3.w = acos(frames[keyFrame] * frames[keyFrame + 1]);
+		
+		Slerp ss;
+		static float t = 0;
+		if (t > 1) t = 0;
+		t = 2 * (lambda - rate)/(1 - rate);
+		if ((quatR.w - quatR2.w) > (quatR.w + quatR2.w)) {
+			quatR2.u.y *= -1;
+			quatR2.w *= -1;
+		}
+		cout << w << " - " << w2 << endl;
+		//if ((quatR.w - quatR2.w) > (quatR.w + quatR2.w)) quatR2.w = -quatR2.w;
+	    ss.makeSlerp(quatR, quatR2, quatR3, t);
+
+		quatR3.ExportToMatrix(m);
+		m[12] = r.x; m[13] = r.y; m[14] = r.z;
+		ant.visualizar(m, 0.5);
 	}
-	glEnd();
-
-	sl.lambdaanim += 0.0001;
-	if (sl.lambdaanim>1.0) sl.lambdaanim = 0.0;
-
-	sl.makeSlerp(quatp, quatq, quatr, sl.lambdaanim);
-
-	//glLoadIdentity();
-	double angle = 20;
-	//Quaternion rp = RotateAboutAxis(a, toRad(angle), b);
-	quatr.ExportToMatrix(m);
-	MultiplyPointMatrix(m, sl.p, sl.Rp);
-	glMaterialfv(GL_FRONT, GL_EMISSION, color_rojo);
-	glPointSize(5);
+	else {
+		m[12] = r.x; m[13] = r.y; m[14] = r.z; 
+		ant.visualizar(m, 0.5);
+	}
 	
-	ant.trasladarCuerpo(s*sl.Rp.x, s*sl.Rp.y, s*sl.Rp.z);
-	ant.visualizar(0.1);
-
-	glBegin(GL_POINTS);
-		glVertex3f(s*sl.Rp.x, s*sl.Rp.y, s*sl.Rp.z);
-	glEnd();*/
+	
 
 	glutPostRedisplay();
 	
