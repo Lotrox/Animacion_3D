@@ -143,19 +143,11 @@ public:
 
 };
 
-class Slerp {
-public:
-	Point3D p, q, Rp;
-	double lambdaanim = 0.0;
-
-	Slerp() {}
-	Slerp(Point3D _p, Point3D _q) { p = _p; q = _q; }
-
-	void makeSlerp(Quaternion q1, Quaternion q2, Quaternion &qr, double lambda)
+static void makeSlerp(Quaternion q1, Quaternion q2, Quaternion &qr, double lambda, bool longWay = false)
 	{
 		float dotproduct = q1.u.x * q2.u.x + q1.u.y * q2.u.y + q1.u.z * q2.u.z + q1.w * q2.w;
 		//cout << dotproduct << endl;
-		if (dotproduct < 0) {
+		if ((dotproduct < 0) && (!longWay)) {
 			q2.w *= -1;
 			q2.u.x *= -1; q2.u.y *= -1; q2.u.z *= -1;
 		}
@@ -182,23 +174,6 @@ public:
 		qr.Normalize();
 	}
 	
-	//theta and phi
-	 void Spherical2Cartesian(double t, double p, double &X, double &Y, double &Z)
-	{
-		X = cos(p)*sin(t);
-		Y = sin(p);
-		Z = cos(p)*cos(t);
-	}
-	void randPoints()
-	{
-		// theta phi of point p
-		Spherical2Cartesian(M_PI*drand()*2.0, M_PI*drand()*2.0, p.x, p.y, p.z);
-
-		// theta, phi of point q
-		Spherical2Cartesian(M_PI*drand()*2.0, M_PI*drand()*2.0, q.x, q.y, q.z);
-	}
-};
-
 
 static Quaternion RotateAboutAxis(Point3D pt, double angle, Point3D axis)
 {

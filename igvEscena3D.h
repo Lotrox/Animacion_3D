@@ -11,9 +11,8 @@ class igvEscena3D {
 		// Atributos
 		bool ejes;
 		bool sR;
-		Point3D* points;
-		float* frames;
 		Hormiga ant;
+		GLfloat m[16];
 	public:
 		// Constructores por defecto y destructor
 		igvEscena3D();
@@ -26,7 +25,7 @@ class igvEscena3D {
     void visualizar();	
 	bool get_ejes() {return ejes;};
 	void set_ejes(bool _ejes){ejes = _ejes;};
-	void slerpRand() { sR = !sR; };
+	GLfloat* getMatrix() { return m; }
 };
 
 #endif

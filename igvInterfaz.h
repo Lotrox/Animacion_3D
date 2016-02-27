@@ -17,15 +17,16 @@ class igvInterfaz {
 		int ancho_ventana; // ancho inicial de la ventana de visualizacion
 		int alto_ventana;  // alto inicial de la ventana de visualizacion
 		bool recortar;	   // atributo el cual nos indicará si se están aplicando los planos de recorte.
-
-    igvEscena3D escena; // escena que se visualiza en la ventana definida por igvInterfaz
+		igvEscena3D escena; // escena que se visualiza en la ventana definida por igvInterfaz
+		
 		igvCamara camara; // cámara que se utiliza para visualizar la escena
 
 	public:
+		
 		// Constructores por defecto y destructor
 		igvInterfaz();
 		~igvInterfaz();
-
+	
 		// Metodos estáticos
 		// callbacks de eventos
 		static void set_glutKeyboardFunc(unsigned char key, int x, int y); // metodo para control de eventos del teclado

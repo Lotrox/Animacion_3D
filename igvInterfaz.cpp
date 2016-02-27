@@ -18,8 +18,9 @@ igvInterfaz::~igvInterfaz () {}
 
 void igvInterfaz::crear_mundo(void) {
 	// crear cámaras
-	interfaz.camara.set(IGV_PARALELA, igvPunto3D(3.0,2.0,4),igvPunto3D(0,0,0),igvPunto3D(0,1.0,0),
-		                                -16, 16, -9, 9, -200, 200);
+	interfaz.camara.set(IGV_PERSPECTIVA, interfaz.camara.P0, interfaz.camara.r, interfaz.camara.V,
+		60, 1, 1, 100);
+	util::LoadTraveling();
 }
 
 void igvInterfaz::configura_entorno(int argc, char** argv,
@@ -57,15 +58,14 @@ void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
 
 	switch (key) {
 	case 'r': // cambia el tipo de proyección de paralela a perspectiva y viceversa
-		interfaz.escena.slerpRand();
 		break;
     case 'p': // cambia el tipo de proyección de paralela a perspectiva y viceversa
 		if(interfaz.camara.tipo==IGV_PARALELA){
 			interfaz.camara.set(IGV_PERSPECTIVA, interfaz.camara.P0,interfaz.camara.r,interfaz.camara.V,
 			60,1,1,100);
 		}else{
-			interfaz.camara.set(IGV_PARALELA, interfaz.camara.P0,interfaz.camara.r,interfaz.camara.V,
-		                                -1*3, 1*3, -1*3, 1*3, -1*3, 200);
+			interfaz.camara.set(IGV_PARALELA, igvPunto3D(3.0, 2.0, 4), igvPunto3D(0, 0, 0), igvPunto3D(0, 1.0, 0),
+				-16, 16, -9, 9, -200, 200);
 		}
 		interfaz.camara.aplicar();
 
@@ -132,6 +132,7 @@ void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
       exit(1);
     break;
   }
+
 	glutPostRedisplay(); // renueva el contenido de la ventana de vision y redibuja la escena
 }
 
@@ -142,12 +143,28 @@ void igvInterfaz::set_glutReshapeFunc(int w, int h) {
 	 interfaz.set_alto_ventana(h);
 
 	// establece los parámetros de la cámara y de la proyección
+
 	interfaz.camara.aplicar();
 }
 
 void igvInterfaz::set_glutDisplayFunc() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // borra la ventana y el z-buffer
 
+	/*Modificar las coordenadas y vector dirección de la cámara para realizar el traveling.*/
+	static float lambda = 0;
+	static int keyFrame = 0;
+	Point3D r;
+	if (lambda > 1) {
+		lambda = 0;
+		if (keyFrame + 2 < util::TAM_T) keyFrame++;
+		else keyFrame = 0;
+	};
+	lambda += 1.0 / (util::kFramesT[keyFrame + 1] - util::kFramesT[keyFrame]);
+	make_lerp(util::pointsT[keyFrame], util::pointsT[keyFrame + 1], r, lambda);
+
+	
+	interfaz.camara.set(igvPunto3D(r.x, r.y, r.z), igvPunto3D(interfaz.escena.getMatrix()[12], interfaz.escena.getMatrix()[13], interfaz.escena.getMatrix()[14]), igvPunto3D(0, 1, 0));
+	interfaz.camara.aplicar();
 	// se establece el viewport
 	if(!interfaz.camara.panoramico){ 
 		glViewport(0, 0, interfaz.get_ancho_ventana(), interfaz.get_alto_ventana());
@@ -198,6 +215,7 @@ void igvInterfaz::set_glutDisplayFunc() {
 		interfaz.escena.visualizar();
 	}
 	//visualiza la escena
+
 	interfaz.escena.visualizar();
 
 	// refresca la ventana

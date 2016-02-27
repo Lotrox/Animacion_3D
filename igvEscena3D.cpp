@@ -6,11 +6,13 @@
 
 #define M_PI 3.14159265
 #define toRad(x) ((x)*(M_PI/180.0))
+
+using namespace util;
 // Metodos constructores 
 
 igvEscena3D::igvEscena3D () {
 	ejes = true;
-	util::inputPoints(points, frames);
+	LoadInputs();
 }
 
 igvEscena3D::~igvEscena3D() {}
@@ -77,9 +79,21 @@ void igvEscena3D::visualizar(void) {
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_rojo);
 
 
-
-
 	/*LERP STUFFs*/
+	/*Recorrido a seguir*/
+	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
+	glPointSize(1.0);
+	Point3D r2;
+
+	glBegin(GL_LINE_STRIP);
+	for (int i = 0; i < util::TAM - 1; i++) {
+		for (double lambd = 0; lambd <= 1.01; lambd += 0.01)
+		{
+			make_lerp(points[i], points[i + 1], r2, lambd);
+			glVertex3f(r2.x, r2.y, r2.z);
+		}
+	}
+	glEnd();
 	static float lambda = 0;
 	static int keyFrame = 0;
 	Point3D r;
@@ -88,69 +102,50 @@ void igvEscena3D::visualizar(void) {
 		lambda = 0;
 		if (keyFrame + 2 < util::TAM) keyFrame++;
 		else keyFrame = 0;
-		cout << "Frame: " << keyFrame << "-" << keyFrame + 1 << endl;
+		//cout << "KeyFrame: " << keyFrame << "-" << keyFrame + 1 << endl;
 	};
-	lambda += 1.0 / (frames[keyFrame + 1] - frames[keyFrame]);
+	lambda += 1.0 / (kFrames[keyFrame + 1] - kFrames[keyFrame]);
 	make_lerp(points[keyFrame], points[keyFrame + 1], r, lambda);
 
-	/*Recorrido a seguir*/
-	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
-	glPointSize(1.0);
-	Point3D r2;
-	glBegin(GL_LINE_STRIP);
-	for (int i = 0; i < util::TAM-1; i++) {
-		for (double lambd = 0; lambd <= 1.01; lambd += 0.01)
-		{
-			make_lerp(points[i], points[i + 1], r2, lambd);
-			glVertex3f(r2.x, r2.y, r2.z);
-		}
-		}
-	glEnd();
 
-	float* test = new float[16];
-	test[0] = 1; test[1] = 0; test[2] = 0; test[3] = 0;
-	test[4] = 0; test[5] = 1; test[6] = 0; test[7] = 0;
-	test[8] = 0; test[9] = 0; test[10] = 1; test[11] = 0;
-	test[12] = r.x; test[13] = r.y; test[14] = r.z; test[15] = 1;
+
 	
+
 	
 	/*SLERP STUFFs*/
-	GLfloat m[16], mm[16];
-	
 	float w = CalculateAngle(points[keyFrame], points[keyFrame + 1]);
-	Point3D rot;
-	rot.x = 0; rot.y = 1; rot.z = 0;
-	Quaternion quatR(w, rot);
+	Point3D rotY, rotZ;
+	rotY.x = 0; rotY.y = 1; rotY.z = 1;
+	rotZ.x = 1; rotZ.y = 0; rotZ.z = 1;
+	Quaternion quatR(w, rotY);
 	quatR.Normalize();
+	
 	quatR.ExportToMatrix(m);
 
-	float rate = 0.7;
+	float rate = 0.05; //Porcentaje en el que empezará a realizar la interpolación de la orientación (SLERP).
 	if ((keyFrame + 2 < util::TAM) && (lambda > rate)) {
 		float w2 = CalculateAngle(points[keyFrame + 1], points[keyFrame + 2]);
 
-		Point3D rot2;
-		rot2.x = 0; rot2.y = 1; rot2.z = 0;
-		Quaternion quatR2(w2, rot2);
+		Quaternion quatR2(w2, rotY);
 		quatR2.Normalize();
 		Quaternion quatR3;
-		quatR3.w = acos(frames[keyFrame] * frames[keyFrame + 1]);
+		quatR3.w = acos(kFrames[keyFrame] * kFrames[keyFrame + 1]);
 		
-		Slerp ss;
 		static float t = 0;
 		if (t > 1) t = 0;
 		t = (lambda - rate)/(1 - rate);
 
-	    ss.makeSlerp(quatR, quatR2, quatR3, t);
+	    makeSlerp(quatR, quatR2, quatR3, t);
 
 		quatR3.ExportToMatrix(m);
-		m[12] = r.x; m[13] = r.y; m[14] = r.z;
-		ant.visualizar(m, 0.5);
 	}
-	else {
-		m[12] = r.x; m[13] = r.y; m[14] = r.z; 
-		ant.visualizar(m, 0.5);
-	}
-	
+
+	m[12] = r.x; m[13] = r.y; m[14] = r.z;
+	glPushMatrix();
+		glMultMatrixf(m);
+		glutSolidTeapot(1);
+		//ant.visualizar(m, 0.5);
+	glPopMatrix();
 	
 
 	glutPostRedisplay();
