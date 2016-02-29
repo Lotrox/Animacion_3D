@@ -18,8 +18,13 @@ namespace util {
 	static float* kFramesT;
 
 	static void LoadInputs() {
+		if (TAM != 0) {
+			delete points;
+			delete kFrames;
+		}
+		
 		float data;
-		string fich = "INPUT.txt";
+		string fich = "keyframes.txt";
 		ifstream f(fich.c_str(), std::ifstream::in);
 		f >> TAM;
 		points = new Point3D[TAM];
@@ -36,10 +41,15 @@ namespace util {
 			f >> data;
 			kFrames[i] = data;
 		}
+		
 	}
 	static void LoadTraveling() {
+		if (TAM_T != 0) {
+			delete pointsT;
+			delete kFramesT;
+		}
 		float data;
-		string fich = "TRAVELING.txt";
+		string fich = "traveling.txt";
 		ifstream f(fich.c_str(), std::ifstream::in);
 		f >> TAM_T;
 		pointsT = new Point3D[TAM_T];

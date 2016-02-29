@@ -4,14 +4,15 @@
 #include <GL/glut.h>
 #include "Util.h"
 #include "Interpolation.h"
-#include "Hormiga.h"
 
 class igvEscena3D {
 	protected:
 		// Atributos
 		bool ejes;
 		bool sR;
-		Hormiga ant;
+		bool pause;
+		bool trayec;
+		bool input;
 		GLfloat m[16];
 	public:
 		// Constructores por defecto y destructor
@@ -25,6 +26,10 @@ class igvEscena3D {
     void visualizar();	
 	bool get_ejes() {return ejes;};
 	void set_ejes(bool _ejes){ejes = _ejes;};
+	void pauseSwitch() { pause = !pause; };
+	bool get_pause() { return pause; }
+	void trayecSwitch() { trayec = !trayec; }
+	void reloadInputs() { input = true; }
 	GLfloat* getMatrix() { return m; }
 };
 

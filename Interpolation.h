@@ -30,8 +30,7 @@ class Point3D
 public:
 	double x, y, z;
 
-    void Normalize()
-	{
+    void Normalize(){
 		double norm = sqrt(x*x + y*y + z*z);
 		x /= norm; y /= norm; z /= norm;
 	}
@@ -66,8 +65,7 @@ public:
 		return *this;
 	}
 
-	inline void Multiply(const Quaternion q)
-	{
+	inline void Multiply(const Quaternion q){
 		Quaternion tmp;
 		tmp.u.x = ((w * q.u.x) + (u.x * q.w) + (u.y * q.u.z) - (u.z * q.u.y));
 		tmp.u.y = ((w * q.u.y) - (u.x * q.u.z) + (u.y * q.w) + (u.z * q.u.x));
@@ -76,27 +74,23 @@ public:
 		*this = tmp;
 	}
 
-	inline double Norm()
-	{
+	inline double Norm(){
 		return sqrt(u.x*u.x + u.y*u.y + u.z*u.z + w*w);
 	}
 
 
-	inline void Normalize()
-	{
+	inline void Normalize(){
 		double norm = Norm();
 		u.x /= norm; u.y /= norm; u.z /= norm;
 	}
 
-	inline void Conjugate()
-	{
+	inline void Conjugate(){
 		u.x = -u.x;
 		u.y = -u.y;
 		u.z = -u.z;
 	}
 
-	inline void Inverse()
-	{
+	inline void Inverse(){
 		double norm = Norm();
 		Conjugate();
 		u.x /= norm;
@@ -105,8 +99,7 @@ public:
 		w /= norm;
 	}
 
-	void ExportToMatrix(float matrix[16])
-	{
+	void ExportToMatrix(float matrix[16]){
 		float wx, wy, wz, xx, yy, yz, xy, xz, zz;
 		// adapted from Shoemake
 		xx = u.x * u.x;
@@ -146,16 +139,12 @@ public:
 static void makeSlerp(Quaternion q1, Quaternion q2, Quaternion &qr, double lambda, bool longWay = false)
 	{
 		float dotproduct = q1.u.x * q2.u.x + q1.u.y * q2.u.y + q1.u.z * q2.u.z + q1.w * q2.w;
-		//cout << dotproduct << endl;
 		if ((dotproduct < 0) && (!longWay)) {
 			q2.w *= -1;
 			q2.u.x *= -1; q2.u.y *= -1; q2.u.z *= -1;
 		}
 		dotproduct = q1.u.x * q2.u.x + q1.u.y * q2.u.y + q1.u.z * q2.u.z + q1.w * q2.w;
 		float theta, st, sut, sout, coeff1, coeff2;
-
-		// algorithm adapted from Shoemake's paper
-		//lambda = lambda / 2.0;
 
 		theta = (float)acos(dotproduct);
 		if (theta<0.0) theta = -theta;
@@ -209,7 +198,6 @@ static float CalculateAngle(Point3D a, Point3D b) {
 	
 	//cout << c.x << " " << c.y << " " << c.z << endl;
 
-	//float h = sqrt(pow(c.x, 2) + pow(c.z, 2));
 	return atan2(-c.z, c.x);
 }
 

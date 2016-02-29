@@ -18,7 +18,7 @@ class igvInterfaz {
 		int alto_ventana;  // alto inicial de la ventana de visualizacion
 		bool recortar;	   // atributo el cual nos indicará si se están aplicando los planos de recorte.
 		igvEscena3D escena; // escena que se visualiza en la ventana definida por igvInterfaz
-		
+		bool travel;
 		igvCamara camara; // cámara que se utiliza para visualizar la escena
 
 	public:
