@@ -25,10 +25,12 @@ inline double drand() { return rand() / (double)RAND_MAX; }
 #define toRad(x) ((x)*(M_PI/180.0))
 
 
-class Point3D
-{
+class Point3D{
 public:
 	double x, y, z;
+
+	Point3D() { x = 0; y = 0; z = 0; };
+	Point3D(double _x, double _y, double _z) { x = _x; y = _y; z = _z; }
 
     void Normalize(){
 		double norm = sqrt(x*x + y*y + z*z);
@@ -136,46 +138,49 @@ public:
 
 };
 
-static void makeSlerp(Quaternion q1, Quaternion q2, Quaternion &qr, double lambda, bool longWay = false)
-	{
-		float dotproduct = q1.u.x * q2.u.x + q1.u.y * q2.u.y + q1.u.z * q2.u.z + q1.w * q2.w;
-		if ((dotproduct < 0) && (!longWay)) {
-			q2.w *= -1;
-			q2.u.x *= -1; q2.u.y *= -1; q2.u.z *= -1;
-		}
-		dotproduct = q1.u.x * q2.u.x + q1.u.y * q2.u.y + q1.u.z * q2.u.z + q1.w * q2.w;
-		float theta, st, sut, sout, coeff1, coeff2;
-
-		theta = (float)acos(dotproduct);
-		if (theta<0.0) theta = -theta;
-
-		st = (float)sin(theta);
-		sut = (float)sin(lambda*theta);
-		sout = (float)sin((1 - lambda)*theta);
-		coeff1 = sout / st;
-		coeff2 = sut / st;
-
-		qr.u.x = coeff1*q1.u.x + coeff2*q2.u.x;
-		qr.u.y = coeff1*q1.u.y + coeff2*q2.u.y;
-		qr.u.z = coeff1*q1.u.z + coeff2*q2.u.z;
-		qr.w = coeff1*q1.w + coeff2*q2.w;
-
-		qr.Normalize();
+static void makeSlerp(Quaternion q1, Quaternion q2, Quaternion &qr, double lambda, bool longWay = false){
+	float dotproduct = q1.u.x * q2.u.x + q1.u.y * q2.u.y + q1.u.z * q2.u.z + q1.w * q2.w;
+	if ((dotproduct < 0) && (!longWay)) { /*Condición para tomar el camino más corto de la interpolación.*/
+		q2.w *= -1;
+		q2.u.x *= -1; q2.u.y *= -1; q2.u.z *= -1;
 	}
+	dotproduct = q1.u.x * q2.u.x + q1.u.y * q2.u.y + q1.u.z * q2.u.z + q1.w * q2.w;
+	float theta, st, sut, sout, coeff1, coeff2;
+
+	theta = (float)acos(dotproduct);
+	if (theta<0.0) theta = -theta;
+
+	st = (float)sin(theta);
+	sut = (float)sin(lambda*theta);
+	sout = (float)sin((1 - lambda)*theta);
+	coeff1 = sout / st;
+	coeff2 = sut / st;
+
+	qr.u.x = coeff1*q1.u.x + coeff2*q2.u.x;
+	qr.u.y = coeff1*q1.u.y + coeff2*q2.u.y;
+	qr.u.z = coeff1*q1.u.z + coeff2*q2.u.z;
+	qr.w = coeff1*q1.w + coeff2*q2.w;
+
+	qr.Normalize();
+}
+
+static void makeLerp(Point3D q1, Point3D q2, Point3D& r, float alpha) {
+	r.x = (1 - alpha)*q1.x + q2.x*alpha;
+	r.y = (1 - alpha)*q1.y + q2.y*alpha;
+	r.z = (1 - alpha)*q1.z + q2.z*alpha;
+}
+
 	
 
-static Quaternion RotateAboutAxis(Point3D pt, double angle, Point3D axis)
-{
+static Quaternion RotateAboutAxis(Point3D pt, double angle, Point3D axis){
 	Quaternion q, p, qinv;
 
 	q.w = cos(0.5*angle);
 	q.u.x = sin(0.5*angle)*axis.x;
 	q.u.y = sin(0.5*angle)*axis.y;
 	q.u.z = sin(0.5*angle)*axis.z;
-
 	p.w = 0;
 	p.u = pt;
-
 	qinv = q;
 	qinv.Inverse();
 
@@ -185,9 +190,6 @@ static Quaternion RotateAboutAxis(Point3D pt, double angle, Point3D axis)
 	return q;
 }
 
-
-
-
 static float CalculateAngle(Point3D a, Point3D b) {
 	Point3D c;
 	c.x = b.x - a.x;
@@ -195,24 +197,16 @@ static float CalculateAngle(Point3D a, Point3D b) {
 	c.z = b.z - a.z;
 
 	c.Normalize();
-	
-	//cout << c.x << " " << c.y << " " << c.z << endl;
 
 	return atan2(-c.z, c.x);
 }
 
-static void MultiplyPointMatrix(float m[16], Point3D p, Point3D& rotp)
-{
+static void MultiplyPointMatrix(float m[16], Point3D p, Point3D& rotp){
 	rotp.x = m[0] * p.x + m[1] * p.y + m[2] * p.z;
 	rotp.y = m[4] * p.x + m[5] * p.y + m[6] * p.z;
 	rotp.z = m[8] * p.x + m[9] * p.y + m[10] * p.z;
 }
 
-static void make_lerp(Point3D q1, Point3D q2, Point3D& r, float alpha) {
-	r.x = (1 - alpha)*q1.x + q2.x*alpha;
-	r.y = (1 - alpha)*q1.y + q2.y*alpha;
-	r.z = (1 - alpha)*q1.z + q2.z*alpha;
-}
 
 
 #endif	/* INTERPOLATION_H */

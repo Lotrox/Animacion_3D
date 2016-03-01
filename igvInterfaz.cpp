@@ -87,6 +87,7 @@ void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
 		}else if(interfaz.camara.vista == NINGUNO){
 			interfaz.camara.set(IGV_PERSPECTIVA, interfaz.camara.P0, interfaz.camara.r, interfaz.camara.V,
 				60, 1, 1, 100);
+			interfaz.travel = true;
 		}
 		interfaz.camara.aplicar();
 	  break;
@@ -172,11 +173,12 @@ void igvInterfaz::set_glutDisplayFunc() {
 			else keyFrame = 0;
 		};
 		lambda += 1.0 / (util::kFramesT[keyFrame + 1] - util::kFramesT[keyFrame]);
-		make_lerp(util::pointsT[keyFrame], util::pointsT[keyFrame + 1], r, lambda);
+		makeLerp(util::pointsT[keyFrame], util::pointsT[keyFrame + 1], r, lambda);
 
 		interfaz.camara.set(igvPunto3D(r.x, r.y, r.z), igvPunto3D(interfaz.escena.getMatrix()[12], interfaz.escena.getMatrix()[13], interfaz.escena.getMatrix()[14]), igvPunto3D(0, 1, 0));
 		interfaz.camara.aplicar();
 	}
+
 	// se establece el viewport
 	if (!interfaz.camara.panoramico) {
 		glViewport(0, 0, interfaz.get_ancho_ventana(), interfaz.get_alto_ventana());

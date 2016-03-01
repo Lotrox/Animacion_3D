@@ -13,7 +13,7 @@ class igvEscena3D {
 		bool pause;
 		bool trayec;
 		bool input;
-		GLfloat m[16];
+		GLfloat m[16]; //Matriz de modelado
 	public:
 		// Constructores por defecto y destructor
 		igvEscena3D();
@@ -30,6 +30,8 @@ class igvEscena3D {
 	bool get_pause() { return pause; }
 	void trayecSwitch() { trayec = !trayec; }
 	void reloadInputs() { input = true; }
+	void interpolacionLineal();
+	void interpolacionEsferica();
 	GLfloat* getMatrix() { return m; }
 };
 

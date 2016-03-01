@@ -12,9 +12,11 @@ namespace util {
 
 	static int TAM = 0;
 	static int TAM_T = 0;
+
 	static Point3D* points;
-	static float* kFrames;
 	static Point3D* pointsT;
+
+	static float* kFrames;
 	static float* kFramesT;
 
 	static void LoadInputs() {
