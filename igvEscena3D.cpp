@@ -23,6 +23,7 @@ igvEscena3D::~igvEscena3D() {}
 // Metodos publicos 
 
 void pintar_ejes(void) {
+	glLineWidth(1);
 	GLfloat rojo[] = { 1,0,0,1.0 };
 	GLfloat verde[] = { 0,1,0,1.0 };
 	GLfloat azul[] = { 0,0,1,1.0 };
@@ -42,9 +43,20 @@ void pintar_ejes(void) {
 	glEnd();
 }
 
+void pintarPuntos() {
+	GLfloat color_morado[] = { 0.5f,0,0.5f };
+	glPointSize(10.0);
+	for (int i = 0; i < util::TAM; i++) {
+		glBegin(GL_POINTS);
+		glVertex3f(points[i].x, points[i].y, points[i].z);
+		glEnd();
+	}
+}
+
 void  pintarTrayectoria() {
 	GLfloat color_negro[] = { 0,0,0 };
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
+	
 	for (int i = 0; i < util::TAM - 1; i++) {
 		glBegin(GL_LINE_STRIP);
 		for (double lambd = 0; lambd <= 1.01; lambd += 0.01)
@@ -57,13 +69,34 @@ void  pintarTrayectoria() {
 	}
 }
 
+void  pintarTrayectoriaHermite() {
+	GLfloat color_negro[] = { 0,0,0 };
+	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
+	glLineWidth(3);
+	glBegin(GL_LINE_STRIP);
+	for (int i = 0; i < util::TAM -1; i++) {
+		for (double lambd = 0; lambd <= 1.01; lambd += 0.01)
+		{
+			int ini, end;
+			if (i == 0) ini = i;
+			else ini = i - 1;
+			if (i + 1 == TAM - 1) end = TAM - 1;
+			else end = i + 2;
+			//cout << ini << " " << i << " " << i + 1 << " " << end << endl;
+			Point3D r2 = HermiteInterpolate(points[ini], points[i], points[i+1], points[end], lambd, 0, 0);
+			glVertex3f(r2.x, r2.y, r2.z);
+		}
+	}
+	glEnd();
+}
+
 
 void igvEscena3D::interpolacionLineal() {
 	/*---------LERP---------*/
 	/*Trayectoria a seguir*/
 
 	if (trayec) pintarTrayectoria();
-
+	pintarTrayectoriaHermite();
 	if (lambda > 1) {
 		lambda = 0;
 		if (keyFrame + 2 < util::TAM) keyFrame++;
@@ -132,6 +165,7 @@ void igvEscena3D::visualizar(void) {
 
 	// se pintan los ejes
 	if (ejes) pintar_ejes();
+	pintarPuntos();
 
 	if (input) { //Recargar inputs si se pulsa la tecla
 		input = false;
@@ -139,18 +173,16 @@ void igvEscena3D::visualizar(void) {
 	}
 
 	interpolacionLineal(); //Funcion LERP.
-	interpolacionEsferica(); //Funcion SLERP.
+	//interpolacionEsferica(); //Funcion SLERP.
 
 	m[12] = r.x; m[13] = r.y; m[14] = r.z; //Traslación desde la matriz.
 
 	glPushMatrix();
-
 	glMultMatrixf(m);
-	escaladoNoUniforme(); //Funcion de escalado no uniforme.
-	glutSolidTeapot(1);
-
+		escaladoNoUniforme(); //Funcion de escalado no uniforme.
+		//glutSolidTeapot(1); //Visualización del modelo.
 	glPopMatrix();
-	glutPostRedisplay();
 
+	glutPostRedisplay();
 	glPopMatrix();
 }

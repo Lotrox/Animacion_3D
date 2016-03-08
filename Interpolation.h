@@ -203,6 +203,56 @@ static void MultiplyPointMatrix(float m[16], Point3D p, Point3D& rotp){
 	rotp.z = m[8] * p.x + m[9] * p.y + m[10] * p.z;
 }
 
+static Point3D HermiteInterpolate(Point3D a, Point3D b, Point3D c, Point3D d, double alpha, double tension, double bias) {
+	Point3D pR;
+	double alpha2, alpha3; //Alpha al cuarado y al cubo respectivamente.
+	double m0, m1;
+	double w0, w1, w2, w3;
 
+	alpha2 = alpha * alpha;
+	alpha3 = alpha2 * alpha;
+
+	m0 = (b.x - a.x) * (1 + bias) * (1 - tension) / 2;
+	m0 += (c.x - b.x) * (1 - bias) * (1 - tension) / 2;
+	m1 = (c.x - b.x) * (1 + bias) * (1 - tension) / 2;
+	m1 += (d.x - c.x) * (1 - bias) * (1 - tension) / 2;
+
+	w0 = 2 * alpha3 - 3 * alpha2 + 1;
+	w1 = alpha3 - 2 * alpha2 + alpha;
+	w2 = alpha3 - alpha2;
+	w3 = -2 * alpha3 + 3 * alpha2;
+
+	pR.x = w0 * b.x + w1 * m0 + w2 * m1 + w3 * c.x;
+
+	///
+
+	m0 = (b.y - a.y) * (1 + bias) * (1 - tension) / 2;
+	m0 += (c.y - b.y) * (1 - bias) * (1 - tension) / 2;
+	m1 = (c.y - b.y) * (1 + bias) * (1 - tension) / 2;
+	m1 += (d.y - c.y) * (1 - bias) * (1 - tension) / 2;
+
+	w0 = 2 * alpha3 - 3 * alpha2 + 1;
+	w1 = alpha3 - 2 * alpha2 + alpha;
+	w2 = alpha3 - alpha2;
+	w3 = -2 * alpha3 + 3 * alpha2;
+
+	pR.y = w0 * b.y + w1 * m0 + w2 * m1 + w3 * c.y;
+
+	///
+
+	m0 = (b.z - a.z) * (1 + bias) * (1 - tension) / 2;
+	m0 += (c.z - b.z) * (1 - bias) * (1 - tension) / 2;
+	m1 = (c.z - b.z) * (1 + bias) * (1 - tension) / 2;
+	m1 += (d.z - c.z) * (1 - bias) * (1 - tension) / 2;
+
+	w0 = 2 * alpha3 - 3 * alpha2 + 1;
+	w1 = alpha3 - 2 * alpha2 + alpha;
+	w2 = alpha3 - alpha2;
+	w3 = -2 * alpha3 + 3 * alpha2;
+
+	pR.z = w0 * b.z + w1 * m0 + w2 * m1 + w3 * c.z;
+
+	return pR;
+}
 
 #endif	/* INTERPOLATION_H */
