@@ -15,11 +15,7 @@
 
 using namespace std;
 
-#define W 800
-#define H 800
-
 inline double drand() { return rand() / (double)RAND_MAX; }
-
 
 #define M_PI 3.14159265
 #define toRad(x) ((x)*(M_PI/180.0))

@@ -11,7 +11,7 @@ static Point3D r; //Punto resultante de la interpolación lineal.
 using namespace util;
 // Metodos constructores 
 
-igvEscena3D::igvEscena3D () {
+igvEscena3D::igvEscena3D() {
 	ejes = true;
 	pause = false;
 	trayec = true;
@@ -23,22 +23,22 @@ igvEscena3D::~igvEscena3D() {}
 // Metodos publicos 
 
 void pintar_ejes(void) {
-  GLfloat rojo[]={1,0,0,1.0};
-  GLfloat verde[]={0,1,0,1.0};
-  GLfloat azul[]={0,0,1,1.0};
+	GLfloat rojo[] = { 1,0,0,1.0 };
+	GLfloat verde[] = { 0,1,0,1.0 };
+	GLfloat azul[] = { 0,0,1,1.0 };
 
 	glBegin(GL_LINES);
-    glMaterialfv(GL_FRONT,GL_EMISSION,rojo);
-		glVertex3f(2000,0,0);
-		glVertex3f(-2000,0,0);
+	glMaterialfv(GL_FRONT, GL_EMISSION, rojo);
+	glVertex3f(2000, 0, 0);
+	glVertex3f(-2000, 0, 0);
 
-    glMaterialfv(GL_FRONT,GL_EMISSION,verde);
-		glVertex3f(0,2000,0);
-		glVertex3f(0,-2000,0);
+	glMaterialfv(GL_FRONT, GL_EMISSION, verde);
+	glVertex3f(0, 2000, 0);
+	glVertex3f(0, -2000, 0);
 
-    glMaterialfv(GL_FRONT,GL_EMISSION,azul);
-		glVertex3f(0,0,2000);
-		glVertex3f(0,0,-2000);
+	glMaterialfv(GL_FRONT, GL_EMISSION, azul);
+	glVertex3f(0, 0, 2000);
+	glVertex3f(0, 0, -2000);
 	glEnd();
 }
 
@@ -71,7 +71,7 @@ void igvEscena3D::interpolacionLineal() {
 	};
 	if (!pause) lambda += 1.0 / (kFrames[keyFrame + 1] - kFrames[keyFrame]);
 
-	
+
 	makeLerp(points[keyFrame], points[keyFrame + 1], r, lambda);
 }
 
@@ -105,10 +105,10 @@ void igvEscena3D::interpolacionEsferica() {
 void escaladoNoUniforme() {
 	/*--------ESCALADO NO-UNIFORME--------*/
 
-	static float rateScale = 0.8; //Porción de la trayectora en la que comenzará el objeto a realizar el escalado no-uniforme.
+	static float rateScale = 0.9; //Porción de la trayectora en la que comenzará el objeto a realizar el escalado no-uniforme.
 								  /*Interpolación entre los valores de escalado r1 y  r2*/
-	Point3D r1(1.1, 0.8, 1.1);
-	Point3D r2(0.9, 1.2, 0.9);
+	Point3D r1(1.2, 0.7, 1.2);
+	Point3D r2(0.8, 1.3, 0.8);
 	Point3D rR;
 
 	if (lambda < rateScale) makeLerp(r1, r2, rR, lambda / rateScale);
@@ -137,10 +137,10 @@ void igvEscena3D::visualizar(void) {
 		input = false;
 		LoadInputs();
 	}
-	
+
 	interpolacionLineal(); //Funcion LERP.
 	interpolacionEsferica(); //Funcion SLERP.
-	
+
 	m[12] = r.x; m[13] = r.y; m[14] = r.z; //Traslación desde la matriz.
 
 	glPushMatrix();
@@ -152,6 +152,5 @@ void igvEscena3D::visualizar(void) {
 	glPopMatrix();
 	glutPostRedisplay();
 
-	glPopMatrix (); 
+	glPopMatrix();
 }
-
