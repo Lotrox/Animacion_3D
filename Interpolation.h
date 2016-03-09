@@ -27,10 +27,43 @@ public:
 
 	Point3D() { x = 0; y = 0; z = 0; };
 	Point3D(double _x, double _y, double _z) { x = _x; y = _y; z = _z; }
+	Point3D(const Point3D& orig) { x = orig.x; y = orig.y; z = orig.z; }
 
     void Normalize(){
 		double norm = sqrt(x*x + y*y + z*z);
 		x /= norm; y /= norm; z /= norm;
+	}
+
+	Point3D& operator=(const Point3D& a) {
+		x = a.x;
+		y = a.y;
+		z = a.z;
+		return *this;
+	}
+
+	Point3D& operator+(const Point3D& a) {
+		Point3D p;
+		p.x = x + a.x;
+		p.y = y + a.y;
+		p.z = z + a.z;
+		return p;
+	}
+	
+	Point3D& operator-(const Point3D& a) {
+		Point3D p;
+		p.x = x - a.x;
+		p.y = y - a.y;
+		p.z = z - a.z;
+		cout << p.z << endl;
+		return p;
+	}
+
+	Point3D& operator*(const double& a) {
+		Point3D p;
+		p.x = x * a;
+		p.y = y * a;
+		p.z = z * a;
+		return p;
 	}
 
 };
@@ -211,16 +244,16 @@ static Point3D HermiteInterpolate(Point3D a, Point3D b, Point3D c, Point3D d, do
 
 	alpha2 = alpha * alpha;
 	alpha3 = alpha2 * alpha;
+	
+	w0 = 2 * alpha3 - 3 * alpha2 + 1;
+	w1 = alpha3 - 2 * alpha2 + alpha;
+	w2 = alpha3 - alpha2;
+	w3 = -2 * alpha3 + 3 * alpha2;
 
 	m0 = (b.x - a.x) * (1 + bias) * (1 - tension) / 2;
 	m0 += (c.x - b.x) * (1 - bias) * (1 - tension) / 2;
 	m1 = (c.x - b.x) * (1 + bias) * (1 - tension) / 2;
 	m1 += (d.x - c.x) * (1 - bias) * (1 - tension) / 2;
-
-	w0 = 2 * alpha3 - 3 * alpha2 + 1;
-	w1 = alpha3 - 2 * alpha2 + alpha;
-	w2 = alpha3 - alpha2;
-	w3 = -2 * alpha3 + 3 * alpha2;
 
 	pR.x = w0 * b.x + w1 * m0 + w2 * m1 + w3 * c.x;
 
@@ -231,11 +264,6 @@ static Point3D HermiteInterpolate(Point3D a, Point3D b, Point3D c, Point3D d, do
 	m1 = (c.y - b.y) * (1 + bias) * (1 - tension) / 2;
 	m1 += (d.y - c.y) * (1 - bias) * (1 - tension) / 2;
 
-	w0 = 2 * alpha3 - 3 * alpha2 + 1;
-	w1 = alpha3 - 2 * alpha2 + alpha;
-	w2 = alpha3 - alpha2;
-	w3 = -2 * alpha3 + 3 * alpha2;
-
 	pR.y = w0 * b.y + w1 * m0 + w2 * m1 + w3 * c.y;
 
 	///
@@ -244,11 +272,6 @@ static Point3D HermiteInterpolate(Point3D a, Point3D b, Point3D c, Point3D d, do
 	m0 += (c.z - b.z) * (1 - bias) * (1 - tension) / 2;
 	m1 = (c.z - b.z) * (1 + bias) * (1 - tension) / 2;
 	m1 += (d.z - c.z) * (1 - bias) * (1 - tension) / 2;
-
-	w0 = 2 * alpha3 - 3 * alpha2 + 1;
-	w1 = alpha3 - 2 * alpha2 + alpha;
-	w2 = alpha3 - alpha2;
-	w3 = -2 * alpha3 + 3 * alpha2;
 
 	pR.z = w0 * b.z + w1 * m0 + w2 * m1 + w3 * c.z;
 
