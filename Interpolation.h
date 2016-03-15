@@ -42,28 +42,30 @@ public:
 	}
 
 	Point3D& operator+(const Point3D& a) {
-		Point3D p;
-		p.x = x + a.x;
-		p.y = y + a.y;
-		p.z = z + a.z;
-		return p;
+		Point3D *p = new Point3D(x + a.x, y + a.y, z + a.z);
+		return *p;
 	}
 	
 	Point3D& operator-(const Point3D& a) {
-		Point3D p;
-		p.x = x - a.x;
-		p.y = y - a.y;
-		p.z = z - a.z;
-		cout << p.z << endl;
-		return p;
+		Point3D *p = new Point3D(x - a.x, y - a.y, z - a.z);
+		return *p;
 	}
 
 	Point3D& operator*(const double& a) {
-		Point3D p;
-		p.x = x * a;
-		p.y = y * a;
-		p.z = z * a;
-		return p;
+		Point3D *p = new Point3D(x * a, y * a, z * a);
+		return *p;
+	}
+
+	Point3D& operator/(const double& a) {
+		Point3D *p = new Point3D(x / a, y / a, z / a);
+		return *p;
+	}
+
+	Point3D& operator+=(const Point3D& a) {
+		x += a.x;
+		y += a.y;
+		z += a.z;
+		return *this;
 	}
 
 };
@@ -238,8 +240,8 @@ static void MultiplyPointMatrix(float m[16], Point3D p, Point3D& rotp){
 
 static Point3D HermiteInterpolate(Point3D a, Point3D b, Point3D c, Point3D d, double alpha, double tension, double bias) {
 	Point3D pR;
-	double alpha2, alpha3; //Alpha al cuarado y al cubo respectivamente.
-	double m0, m1;
+	double alpha2, alpha3; //Alpha al cuadrado y al cubo respectivamente.
+	Point3D m0, m1;
 	double w0, w1, w2, w3;
 
 	alpha2 = alpha * alpha;
@@ -250,30 +252,12 @@ static Point3D HermiteInterpolate(Point3D a, Point3D b, Point3D c, Point3D d, do
 	w2 = alpha3 - alpha2;
 	w3 = -2 * alpha3 + 3 * alpha2;
 
-	m0 = (b.x - a.x) * (1 + bias) * (1 - tension) / 2;
-	m0 += (c.x - b.x) * (1 - bias) * (1 - tension) / 2;
-	m1 = (c.x - b.x) * (1 + bias) * (1 - tension) / 2;
-	m1 += (d.x - c.x) * (1 - bias) * (1 - tension) / 2;
+	m0 = (b - a) * (1 + bias) * (1 - tension) / 2;
+	m0 += (c - b) * (1 - bias) * (1 - tension) / 2;
+	m1 = (c - b) * (1 + bias) * (1 - tension) / 2;
+	m1 += (d - c) * (1 - bias) * (1 - tension) / 2;
 
-	pR.x = w0 * b.x + w1 * m0 + w2 * m1 + w3 * c.x;
-
-	///
-
-	m0 = (b.y - a.y) * (1 + bias) * (1 - tension) / 2;
-	m0 += (c.y - b.y) * (1 - bias) * (1 - tension) / 2;
-	m1 = (c.y - b.y) * (1 + bias) * (1 - tension) / 2;
-	m1 += (d.y - c.y) * (1 - bias) * (1 - tension) / 2;
-
-	pR.y = w0 * b.y + w1 * m0 + w2 * m1 + w3 * c.y;
-
-	///
-
-	m0 = (b.z - a.z) * (1 + bias) * (1 - tension) / 2;
-	m0 += (c.z - b.z) * (1 - bias) * (1 - tension) / 2;
-	m1 = (c.z - b.z) * (1 + bias) * (1 - tension) / 2;
-	m1 += (d.z - c.z) * (1 - bias) * (1 - tension) / 2;
-
-	pR.z = w0 * b.z + w1 * m0 + w2 * m1 + w3 * c.z;
+	pR = (b * w0) + (m0 * w1) + (m1 * w2) + (c * w3);
 
 	return pR;
 }

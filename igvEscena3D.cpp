@@ -83,7 +83,7 @@ void  pintarTrayectoriaHermite() {
 			if (i + 1 == TAM - 1) end = TAM - 1;
 			else end = i + 2;
 			//cout << ini << " " << i << " " << i + 1 << " " << end << endl;
-			Point3D r2 = HermiteInterpolate(points[ini], points[i], points[i+1], points[end], lambd, -1, 0);
+			Point3D r2 = HermiteInterpolate(points[ini], points[i], points[i+1], points[end], lambd, 0, 0);
 			glVertex3f(r2.x, r2.y, r2.z);
 		}
 	}
@@ -155,14 +155,6 @@ void igvEscena3D::visualizar(void) {
 	GLfloat luz0[] = { 10,8,9,1 }; // luz puntual
 	glLightfv(GL_LIGHT0, GL_POSITION, luz0);
 	glEnable(GL_LIGHT0);
-
-	Point3D a, b;
-	a.z = 3;
-	b.z = 2;
-	Point3D c;
-	c = a + c;
-	//Point3D d = c * 8;
-	cout << c.z << endl;
 
 	// crear el modelo
 	glPushMatrix(); // guarda la matriz de modelado
