@@ -32,6 +32,7 @@ class igvEscena3D {
 	void reloadInputs() { input = true; }
 	void interpolacionLineal();
 	void interpolacionEsferica();
+	void interpolacionCurva();
 	GLfloat* getMatrix() { return m; }
 };
 

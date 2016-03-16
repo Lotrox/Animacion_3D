@@ -262,4 +262,28 @@ static Point3D HermiteInterpolate(Point3D a, Point3D b, Point3D c, Point3D d, do
 	return pR;
 }
 
+static double HermiteInterpolate(double a, double b, double c, double d, double alpha, double tension, double bias) {
+	double pR;
+	double alpha2, alpha3; //Alpha al cuadrado y al cubo respectivamente.
+	double m0, m1;
+	double w0, w1, w2, w3;
+
+	alpha2 = alpha * alpha;
+	alpha3 = alpha2 * alpha;
+
+	w0 = 2 * alpha3 - 3 * alpha2 + 1;
+	w1 = alpha3 - 2 * alpha2 + alpha;
+	w2 = alpha3 - alpha2;
+	w3 = -2 * alpha3 + 3 * alpha2;
+
+	m0 = (b - a) * (1 + bias) * (1 - tension) / 2;
+	m0 += (c - b) * (1 - bias) * (1 - tension) / 2;
+	m1 = (c - b) * (1 + bias) * (1 - tension) / 2;
+	m1 += (d - c) * (1 - bias) * (1 - tension) / 2;
+
+	pR = (b * w0) + (m0 * w1) + (m1 * w2) + (c * w3);
+
+	return pR;
+}
+
 #endif	/* INTERPOLATION_H */

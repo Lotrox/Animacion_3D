@@ -1,4 +1,4 @@
-#include <cstdlib>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      #include <cstdlib>
 #include <stdio.h>
 #include <vector>
 #include <iostream>
@@ -7,6 +7,8 @@
 static int keyFrame = 0; //Fotograma clave actual.
 static float lambda = 0; //Valor entre 0 y 1 de la interpolación lineal.
 static Point3D r; //Punto resultante de la interpolación lineal.
+static GLfloat* bufferHermite = NULL;
+static int c = 0;
 
 using namespace util;
 // Metodos constructores 
@@ -16,6 +18,7 @@ igvEscena3D::igvEscena3D() {
 	pause = false;
 	trayec = true;
 	LoadInputs();
+	LoadSpeed();
 }
 
 igvEscena3D::~igvEscena3D() {}
@@ -53,7 +56,7 @@ void pintarPuntos() {
 	}
 }
 
-void  pintarTrayectoria() {
+void pintarTrayectoria() {
 	GLfloat color_negro[] = { 0,0,0 };
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
 	
@@ -69,27 +72,86 @@ void  pintarTrayectoria() {
 	}
 }
 
-void  pintarTrayectoriaHermite() {
+void pintarTrayectoriaHermite() {
+
 	GLfloat color_negro[] = { 0,0,0 };
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
 	glLineWidth(3);
-	glBegin(GL_LINE_STRIP);
-	for (int i = 0; i < util::TAM -1; i++) {
-		for (double lambd = 0; lambd <= 1.01; lambd += 0.01)
-		{
-			int ini, end;
-			if (i == 0) ini = i;
-			else ini = i - 1;
-			if (i + 1 == TAM - 1) end = TAM - 1;
-			else end = i + 2;
-			//cout << ini << " " << i << " " << i + 1 << " " << end << endl;
-			Point3D r2 = HermiteInterpolate(points[ini], points[i], points[i+1], points[end], lambd, 0, 0);
-			glVertex3f(r2.x, r2.y, r2.z);
+
+	if (bufferHermite == NULL) {
+		bufferHermite = new GLfloat[3 * 101 * (TAM - 1)];
+		c = 0;
+		for (int i = 0; i < util::TAM - 1; i++) {
+			for (double lambd = 0; lambd <= 1.01; lambd += 0.01)
+			{
+				int ini, end;
+				if (i == 0) ini = i;
+				else ini = i - 1;
+				if (i + 1 == TAM - 1) end = TAM - 1;
+				else end = i + 2;
+				Point3D r2 = HermiteInterpolate(points[ini], points[i], points[i + 1], points[end], lambd, 0, 0);
+				bufferHermite[c++] = r2.x;
+				bufferHermite[c++] = r2.y;
+				bufferHermite[c++] = r2.z;
+			}
 		}
 	}
-	glEnd();
+	else {
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, bufferHermite);
+		glDrawArrays(GL_LINE_STRIP, 0, 101 * (TAM - 1));
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
 }
 
+static int keyVelocity = 0;
+static double lambda_V = 0;
+static double lambda_new = 0;
+
+void igvEscena3D::interpolacionCurva() {
+	static int ini2 = 0, end2 = 0, ini = 0, end = 0;
+	/*---------Velocidad de curva---------*/
+	if ((lambda_V > rate[keyVelocity]) || (end2 == 0)) {
+		lambda_new = 0;
+		if (keyVelocity + 1 < TAM_V) keyVelocity++;
+		else keyVelocity = 0;
+
+		ini2 = keyVelocity - 1;
+		if (keyVelocity + 1 == TAM_V) end2 = TAM_V - 1;
+		else end2 = keyVelocity + 1;
+	}
+	if (!pause) lambda_V += 1.0 / (kFrames[TAM-1] - kFrames[0]);
+	
+	int a;
+	if (keyVelocity == 0) a = 0;
+	else a = keyVelocity - 1;
+	lambda_new = (lambda_V - rate[a]) / (rate[keyVelocity] - rate[a]);
+
+	double h = HermiteInterpolate(velocity[ini2], velocity[keyVelocity - 1], velocity[keyVelocity], velocity[end2], lambda_new, 0, 0);
+
+	/*---------Curva---------*/
+	/*Trayectoria a seguir*/
+	if (trayec) pintarTrayectoriaHermite();
+	
+	if (lambda > 1) {
+		lambda = 0;
+		if (keyFrame + 2 < util::TAM) keyFrame++;
+		else {
+			keyFrame = 0;
+			lambda_V = 0;
+			keyVelocity = 0;
+			lambda_new = 0;
+			ini2 = 0, end2 = 0, ini = 0, end = 0;
+		}
+		if (keyFrame == 0) ini = keyFrame;
+		else ini = keyFrame - 1;
+		if (keyFrame + 1 == TAM - 1) end = TAM - 1;
+		else end = keyFrame + 2;
+	};
+
+	if (!pause) lambda += 2 * h / (kFrames[keyFrame + 1] - kFrames[keyFrame]);
+	r = HermiteInterpolate(points[ini], points[keyFrame], points[keyFrame + 1], points[end], lambda, 0, 0);
+}
 
 void igvEscena3D::interpolacionLineal() {
 	/*---------LERP---------*/
@@ -138,10 +200,10 @@ void igvEscena3D::interpolacionEsferica() {
 void escaladoNoUniforme() {
 	/*--------ESCALADO NO-UNIFORME--------*/
 
-	static float rateScale = 0.9; //Porción de la trayectora en la que comenzará el objeto a realizar el escalado no-uniforme.
+	static float rateScale = 0.3; //Porción de la trayectora en la que comenzará el objeto a realizar el escalado no-uniforme.
 								  /*Interpolación entre los valores de escalado r1 y  r2*/
-	Point3D r1(1.2, 0.7, 1.2);
-	Point3D r2(0.8, 1.3, 0.8);
+	Point3D r1(1.1, 0.8, 1.1);
+	Point3D r2(0.8, 1.1, 0.8);
 	Point3D rR;
 
 	if (lambda < rateScale) makeLerp(r1, r2, rR, lambda / rateScale);
@@ -172,17 +234,18 @@ void igvEscena3D::visualizar(void) {
 		LoadInputs();
 	}
 
-	interpolacionLineal(); //Funcion LERP.
-	//interpolacionEsferica(); //Funcion SLERP.
+	//interpolacionLineal(); //Funcion LERP.
+	interpolacionCurva(); //Funcion curva con Hermite.
+	interpolacionEsferica(); //Funcion SLERP.
 
 	m[12] = r.x; m[13] = r.y; m[14] = r.z; //Traslación desde la matriz.
 
 	glPushMatrix();
 	glMultMatrixf(m);
 		escaladoNoUniforme(); //Funcion de escalado no uniforme.
-		//glutSolidTeapot(1); //Visualización del modelo.
+		glutSolidTeapot(1); //Visualización del modelo.
 	glPopMatrix();
 
 	glutPostRedisplay();
 	glPopMatrix();
-}
+}                                                                                                                                                                                                                                                                                                                                                                                      
