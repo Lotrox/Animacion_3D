@@ -9,6 +9,9 @@ static float lambda = 0; //Valor entre 0 y 1 de la interpolación lineal.
 static Point3D r; //Punto resultante de la interpolación lineal.
 static GLfloat* bufferHermite = NULL;
 static int c = 0;
+static int keyVelocity = 0;
+static double lambda_V = 0;
+static double lambda_new = 0;
 
 using namespace util;
 // Metodos constructores 
@@ -16,6 +19,7 @@ using namespace util;
 igvEscena3D::igvEscena3D() {
 	ejes = true;
 	pause = false;
+	lineal = false;
 	trayec = true;
 	LoadInputs();
 	LoadSpeed();
@@ -48,7 +52,8 @@ void pintar_ejes(void) {
 
 void pintarPuntos() {
 	GLfloat color_morado[] = { 0.5f,0,0.5f };
-	glPointSize(10.0);
+	glMaterialfv(GL_FRONT, GL_EMISSION, color_morado);
+	glPointSize(8.0);
 	for (int i = 0; i < util::TAM; i++) {
 		glBegin(GL_POINTS);
 		glVertex3f(points[i].x, points[i].y, points[i].z);
@@ -57,8 +62,8 @@ void pintarPuntos() {
 }
 
 void pintarTrayectoria() {
-	GLfloat color_negro[] = { 0,0,0 };
-	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
+	GLfloat color_verde[] = { 0.3,1,0.6 };
+	glMaterialfv(GL_FRONT, GL_EMISSION, color_verde);
 	
 	for (int i = 0; i < util::TAM - 1; i++) {
 		glBegin(GL_LINE_STRIP);
@@ -76,7 +81,7 @@ void pintarTrayectoriaHermite() {
 
 	GLfloat color_negro[] = { 0,0,0 };
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
-	glLineWidth(3);
+	glLineWidth(2);
 
 	if (bufferHermite == NULL) {
 		bufferHermite = new GLfloat[3 * 101 * (TAM - 1)];
@@ -104,36 +109,11 @@ void pintarTrayectoriaHermite() {
 	}
 }
 
-static int keyVelocity = 0;
-static double lambda_V = 0;
-static double lambda_new = 0;
 
 void igvEscena3D::interpolacionCurva() {
 	static int ini2 = 0, end2 = 0, ini = 0, end = 0;
-	/*---------Velocidad de curva---------*/
-	if ((lambda_V > rate[keyVelocity]) || (end2 == 0)) {
-		lambda_new = 0;
-		if (keyVelocity + 1 < TAM_V) keyVelocity++;
-		else keyVelocity = 0;
 
-		ini2 = keyVelocity - 1;
-		if (keyVelocity + 1 == TAM_V) end2 = TAM_V - 1;
-		else end2 = keyVelocity + 1;
-	}
-	if (!pause) lambda_V += 1.0 / (kFrames[TAM-1] - kFrames[0]);
-	
-	int a;
-	if (keyVelocity == 0) a = 0;
-	else a = keyVelocity - 1;
-	lambda_new = (lambda_V - rate[a]) / (rate[keyVelocity] - rate[a]);
-
-	double h = HermiteInterpolate(velocity[ini2], velocity[keyVelocity - 1], velocity[keyVelocity], velocity[end2], lambda_new, 0, 0);
-
-	/*---------Curva---------*/
-	/*Trayectoria a seguir*/
-	if (trayec) pintarTrayectoriaHermite();
-	
-	if (lambda > 1) {
+	if (lambda >= 1) {
 		lambda = 0;
 		if (keyFrame + 2 < util::TAM) keyFrame++;
 		else {
@@ -141,7 +121,7 @@ void igvEscena3D::interpolacionCurva() {
 			lambda_V = 0;
 			keyVelocity = 0;
 			lambda_new = 0;
-			ini2 = 0, end2 = 0, ini = 0, end = 0;
+			ini = 0, end = 0;
 		}
 		if (keyFrame == 0) ini = keyFrame;
 		else ini = keyFrame - 1;
@@ -149,6 +129,30 @@ void igvEscena3D::interpolacionCurva() {
 		else end = keyFrame + 2;
 	};
 
+	/*---------Velocidad de curva---------*/
+	if (((lambda_V >= rate[keyVelocity]) || (end2 == 0)) && (rate[keyVelocity] != 1)) {
+		lambda_new = 0;
+		if (keyVelocity + 1 < TAM_V) keyVelocity++;
+		else keyVelocity = 0;
+
+		if (keyVelocity == 1)  keyVelocity - 1;
+		else ini2 = keyVelocity - 2;
+		if (keyVelocity + 1 >= TAM_V - 1) end2 = TAM_V - 1;
+		else end2 = keyVelocity + 1;
+	}
+	if (!pause) lambda_V +=  1 / (kFrames[TAM-1] - kFrames[0]);
+	
+	int a;
+	if (keyVelocity == 0) a = 0;
+	else a = keyVelocity - 2;
+	lambda_new = (lambda_V - rate[a]) / (rate[keyVelocity] - rate[a]);
+
+	double h = HermiteInterpolate(velocity[ini2], velocity[keyVelocity - 1], velocity[keyVelocity], velocity[end2], lambda_new, 0, 0);
+
+	/*---------Curva---------*/
+	/*Trayectoria a seguir*/
+	if (trayec) pintarTrayectoria();
+	pintarTrayectoriaHermite();
 	if (!pause) lambda += 2 * h / (kFrames[keyFrame + 1] - kFrames[keyFrame]);
 	r = HermiteInterpolate(points[ini], points[keyFrame], points[keyFrame + 1], points[end], lambda, 0, 0);
 }
@@ -158,7 +162,6 @@ void igvEscena3D::interpolacionLineal() {
 	/*Trayectoria a seguir*/
 
 	if (trayec) pintarTrayectoria();
-	pintarTrayectoriaHermite();
 	if (lambda > 1) {
 		lambda = 0;
 		if (keyFrame + 2 < util::TAM) keyFrame++;
@@ -229,13 +232,15 @@ void igvEscena3D::visualizar(void) {
 	if (ejes) pintar_ejes();
 	pintarPuntos();
 
-	if (input) { //Recargar inputs si se pulsa la tecla
+	if (input) { //Recargar parametros de entrada.
 		input = false;
 		LoadInputs();
+		LoadSpeed();
+		bufferHermite = NULL;
 	}
 
-	//interpolacionLineal(); //Funcion LERP.
-	interpolacionCurva(); //Funcion curva con Hermite.
+	if(lineal) interpolacionLineal(); //Funcion LERP.
+	else interpolacionCurva(); //Funcion curva con Hermite.
 	interpolacionEsferica(); //Funcion SLERP.
 
 	m[12] = r.x; m[13] = r.y; m[14] = r.z; //Traslación desde la matriz.
@@ -243,6 +248,7 @@ void igvEscena3D::visualizar(void) {
 	glPushMatrix();
 	glMultMatrixf(m);
 		escaladoNoUniforme(); //Funcion de escalado no uniforme.
+		glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
 		glutSolidTeapot(1); //Visualización del modelo.
 	glPopMatrix();
 

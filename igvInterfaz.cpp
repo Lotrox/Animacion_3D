@@ -60,6 +60,9 @@ void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
 	case 't': 
 		interfaz.travel = !interfaz.travel;
 		break;
+	case 'l':
+		interfaz.escena.linealSwitch();
+		break;
 	case 'r':
 		interfaz.escena.reloadInputs();
 		util::LoadTraveling();
@@ -173,7 +176,12 @@ void igvInterfaz::set_glutDisplayFunc() {
 			else keyFrame = 0;
 		};
 		lambda += 1.0 / (util::kFramesT[keyFrame + 1] - util::kFramesT[keyFrame]);
-		makeLerp(util::pointsT[keyFrame], util::pointsT[keyFrame + 1], r, lambda);
+		int ini, end;
+		if (keyFrame == 0) ini = keyFrame;
+		else ini = keyFrame - 1;
+		if (keyFrame + 1 == util::TAM_T - 1) end = util::TAM_T - 1;
+		else end = keyFrame + 2;
+		r = HermiteInterpolate(util::pointsT[ini], util::pointsT[keyFrame], util::pointsT[keyFrame + 1], util::pointsT[end], lambda, 0, 0);
 
 		interfaz.camara.set(igvPunto3D(r.x, r.y, r.z), igvPunto3D(interfaz.escena.getMatrix()[12], interfaz.escena.getMatrix()[13], interfaz.escena.getMatrix()[14]), igvPunto3D(0, 1, 0));
 		interfaz.camara.aplicar();

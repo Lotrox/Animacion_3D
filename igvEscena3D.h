@@ -13,6 +13,7 @@ class igvEscena3D {
 		bool pause;
 		bool trayec;
 		bool input;
+		bool lineal;
 		GLfloat m[16]; //Matriz de modelado
 	public:
 		// Constructores por defecto y destructor
@@ -26,6 +27,7 @@ class igvEscena3D {
     void visualizar();	
 	bool get_ejes() {return ejes;};
 	void set_ejes(bool _ejes){ejes = _ejes;};
+	void linealSwitch() { lineal = !lineal; };
 	void pauseSwitch() { pause = !pause; };
 	bool get_pause() { return pause; }
 	void trayecSwitch() { trayec = !trayec; }
