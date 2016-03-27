@@ -26,6 +26,8 @@ class igvCamara {
 		bool estereographic;
 		bool multiples;
 
+		double IOD; //intraocular distance
+
 		tipoDeVista vista; // Tipo de vista: Ninguno, Alzado, Planta, Perfil
 		
 		tipoCamara tipo;	// paralela o perspectiva

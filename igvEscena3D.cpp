@@ -221,7 +221,7 @@ void igvEscena3D::visualizar(void) {
 	GLfloat luz0[] = { 0,3,-3,1 }; // luz puntual
 	glLightfv(GL_LIGHT0, GL_POSITION, luz0);
 	glEnable(GL_LIGHT0);
-	//glTranslatef(parallax, 0.0, 0.0);        //translate to cancel parallax
+	glTranslatef(0.0, 0.0, 1.0);       
 	// crear el modelo
 	glPushMatrix(); // guarda la matriz de modelado
 

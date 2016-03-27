@@ -22,7 +22,7 @@ class igvInterfaz {
 		igvCamara camara; // cámara que se utiliza para visualizar la escena
 
 	public:
-		
+
 		// Constructores por defecto y destructor
 		igvInterfaz();
 		~igvInterfaz();

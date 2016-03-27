@@ -52,7 +52,7 @@ void igvInterfaz::inicia_bucle_visualizacion() {
 }
 
 
-static double IOD = 0.5; //intraocular distance
+
 
 void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
 
@@ -112,12 +112,12 @@ void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
 		interfaz.camara.aplicar();
 	  break;
 	case ',': // 
-		IOD += 0.01;
-		cout << IOD << endl;
+		interfaz.camara.IOD += 0.1;
+		cout << interfaz.camara.IOD << endl;
 		break;
 	case '.': //
-		IOD -= 0.01;
-		cout << IOD << endl;
+		interfaz.camara.IOD -= 0.1;
+		cout << interfaz.camara.IOD << endl;
 		break;
     case 'c': // incrementar la distancia del plano cercano
 		interfaz.camara.znear+=0.2;
@@ -193,7 +193,7 @@ void igvInterfaz::set_glutDisplayFunc() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // borra la ventana y el z-buffer
 
 	/*Modificar las coordenadas y vector dirección de la cámara para realizar el traveling.*/
-	Point3D r;
+	static Point3D r;
 	if (interfaz.travel) {
 		static float lambda = 0;
 		static int keyFrame = 0;
@@ -216,26 +216,26 @@ void igvInterfaz::set_glutDisplayFunc() {
 		if (interfaz.camara.estereographic) { //Viewports para la visualización del par estéreo.
 			interfaz.camara.tipo = IGV_FRUSTUM;
 
-
-			double fovy = 45;                                          //field of view in y-axis
-			double aspect = double(interfaz.ancho_ventana) / double(interfaz.alto_ventana);  //screen aspect ratio
-			double nearZ = 1;                                        //near clipping plane
+			double fovy = 60;                                          //field of view in y-axis
+			double aspect = double(interfaz.ancho_ventana/2) / double(interfaz.alto_ventana/2);  //screen aspect ratio
+			double nearZ = 2;                                        //near clipping plane
 			double farZ = 40.0;                                        //far clipping plane
-			double screenZ = 10.0;                                     //screen projection plane
+			double screenZ = 20.0;                                     //screen projection plane
 			
-
 			double top = nearZ*tan(DTR*fovy / 2);                    //sets top of frustum based on fovy and near clipping plane
 			double right = aspect*top;                             //sets right of frustum based on aspect ratio
-			double frustumshift = (IOD / 2)*nearZ / screenZ;
+			double frustumshift = (interfaz.camara.IOD / 2)*nearZ / screenZ;
 
 			//Imagen izquierda
 			interfaz.camara.ywmax = top;
 			interfaz.camara.ywmin = -top;
 			interfaz.camara.xwmin = -right + frustumshift;
 			interfaz.camara.xwmax = right + frustumshift;
+			interfaz.camara.znear = nearZ;
+			interfaz.camara.zfar = farZ;
+			interfaz.camara.IOD *= -1;
 			interfaz.camara.set(igvPunto3D(r.x, r.y, r.z), igvPunto3D(interfaz.escena.getMatrix()[12], interfaz.escena.getMatrix()[13], interfaz.escena.getMatrix()[14]), igvPunto3D(0, 1, 0));
 			glViewport(0, 0, interfaz.ancho_ventana / 2, interfaz.alto_ventana);
-			glTranslatef(IOD / 2, 0.0, 0.0);        //translate to cancel parallax
 			interfaz.camara.aplicar();
 			interfaz.escena.visualizar();
 
@@ -244,13 +244,16 @@ void igvInterfaz::set_glutDisplayFunc() {
 			interfaz.camara.ywmin = -top;
 			interfaz.camara.xwmin = -right - frustumshift;
 			interfaz.camara.xwmax = right - frustumshift;
+			interfaz.camara.znear = nearZ;
+			interfaz.camara.zfar = farZ;
+			interfaz.camara.IOD = abs((interfaz.camara.IOD));
 			interfaz.camara.set(igvPunto3D(r.x, r.y, r.z), igvPunto3D(interfaz.escena.getMatrix()[12], interfaz.escena.getMatrix()[13], interfaz.escena.getMatrix()[14]), igvPunto3D(0, 1, 0));
 			glViewport(interfaz.ancho_ventana / 2, 0, interfaz.ancho_ventana / 2, interfaz.alto_ventana);
-			glTranslatef(-IOD / 2, 0.0, 0.0);        //translate to cancel parallax
 			interfaz.camara.aplicar();
 			interfaz.escena.visualizar();
 		}
 		else {
+			interfaz.camara.tipo = IGV_PERSPECTIVA;
 			interfaz.camara.set(igvPunto3D(r.x, r.y, r.z), igvPunto3D(interfaz.escena.getMatrix()[12], interfaz.escena.getMatrix()[13], interfaz.escena.getMatrix()[14]), igvPunto3D(0, 1, 0));
 			interfaz.camara.aplicar();
 		}
@@ -312,7 +315,7 @@ void igvInterfaz::set_glutDisplayFunc() {
 	}
 	//visualiza la escena
 
-	interfaz.escena.visualizar();
+	if(!interfaz.camara.estereographic) interfaz.escena.visualizar();
 	// refresca la ventana
 	glutSwapBuffers(); // se utiliza, en vez de glFlush(), para evitar el parpadeo
 }
