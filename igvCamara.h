@@ -23,7 +23,7 @@ class igvCamara {
 	public:
 		// atributos
 		bool panoramico;
-
+		bool estereographic;
 		bool multiples;
 
 		tipoDeVista vista; // Tipo de vista: Ninguno, Alzado, Planta, Perfil

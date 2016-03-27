@@ -62,6 +62,7 @@ void pintarPuntos() {
 }
 
 void pintarTrayectoria() {
+	pintarPuntos();
 	GLfloat color_verde[] = { 0.3,1,0.6 };
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_verde);
 	
@@ -78,7 +79,7 @@ void pintarTrayectoria() {
 }
 
 void pintarTrayectoriaHermite() {
-
+	pintarPuntos();
 	GLfloat color_negro[] = { 0,0,0 };
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
 	glLineWidth(2);
@@ -151,8 +152,8 @@ void igvEscena3D::interpolacionCurva() {
 
 	/*---------Curva---------*/
 	/*Trayectoria a seguir*/
-	if (trayec) pintarTrayectoria();
-	pintarTrayectoriaHermite();
+	if (trayec && lineal) pintarTrayectoria();
+	if (trayec && !lineal) pintarTrayectoriaHermite();
 	if (!pause) lambda += 2 * h / (kFrames[keyFrame + 1] - kFrames[keyFrame]);
 	r = HermiteInterpolate(points[ini], points[keyFrame], points[keyFrame + 1], points[end], lambda, 0, 0);
 }
@@ -217,10 +218,10 @@ void escaladoNoUniforme() {
 
 void igvEscena3D::visualizar(void) {
 	// crear luces
-	GLfloat luz0[] = { 10,8,9,1 }; // luz puntual
+	GLfloat luz0[] = { 0,3,-3,1 }; // luz puntual
 	glLightfv(GL_LIGHT0, GL_POSITION, luz0);
 	glEnable(GL_LIGHT0);
-
+	//glTranslatef(parallax, 0.0, 0.0);        //translate to cancel parallax
 	// crear el modelo
 	glPushMatrix(); // guarda la matriz de modelado
 
@@ -230,7 +231,7 @@ void igvEscena3D::visualizar(void) {
 
 	// se pintan los ejes
 	if (ejes) pintar_ejes();
-	pintarPuntos();
+	
 
 	if (input) { //Recargar parametros de entrada.
 		input = false;

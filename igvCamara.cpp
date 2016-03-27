@@ -6,7 +6,7 @@
 
 // Metodos constructores
 
-igvCamara::igvCamara () {vista = NINGUNO; panoramico = false; multiples = false;}
+igvCamara::igvCamara() { vista = NINGUNO; panoramico = false; multiples = false; estereographic = true; }
 
 igvCamara::~igvCamara () {}
 
@@ -72,7 +72,7 @@ void igvCamara::aplicar(void) {
 	
 	glMatrixMode (GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(P0[X],P0[Y],P0[Z], r[X],r[Y],r[Z], V[X],V[Y],V[Z]);
+	/*if(tipo!=IGV_FRUSTUM)*/ gluLookAt(P0[X],P0[Y],P0[Z], r[X],r[Y],r[Z], V[X],V[Y],V[Z]);
 }
 
 

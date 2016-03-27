@@ -14,6 +14,7 @@ class igvEscena3D {
 		bool trayec;
 		bool input;
 		bool lineal;
+		
 		GLfloat m[16]; //Matriz de modelado
 	public:
 		// Constructores por defecto y destructor
