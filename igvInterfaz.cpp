@@ -33,7 +33,8 @@ void igvInterfaz::configura_entorno(int argc, char** argv,
 
 	// inicialización de la ventana de visualización
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
+	glEnable(GLUT_MULTISAMPLE);
 	glutInitWindowSize(_ancho_ventana,_alto_ventana);
 	glutInitWindowPosition(_pos_X,_pos_Y);
 	glutCreateWindow(_titulo.c_str());
@@ -50,9 +51,6 @@ void igvInterfaz::configura_entorno(int argc, char** argv,
 void igvInterfaz::inicia_bucle_visualizacion() {
 	glutMainLoop(); // inicia el bucle de visualizacion de OpenGL
 }
-
-
-
 
 void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
 
@@ -216,7 +214,7 @@ void igvInterfaz::set_glutDisplayFunc() {
 		if (interfaz.camara.estereographic) { //Viewports para la visualización del par estéreo.
 			interfaz.camara.tipo = IGV_FRUSTUM;
 
-			double fovy = 60;                                          //field of view in y-axis
+			double fovy = 45;                                          //field of view in y-axis
 			double aspect = double(interfaz.ancho_ventana/2) / double(interfaz.alto_ventana/2);  //screen aspect ratio
 			double nearZ = 2;                                        //near clipping plane
 			double farZ = 40.0;                                        //far clipping plane
@@ -225,6 +223,17 @@ void igvInterfaz::set_glutDisplayFunc() {
 			double top = nearZ*tan(DTR*fovy / 2);                    //sets top of frustum based on fovy and near clipping plane
 			double right = aspect*top;                             //sets right of frustum based on aspect ratio
 			double frustumshift = (interfaz.camara.IOD / 2)*nearZ / screenZ;
+			
+			/*Test*/
+			Point3D v(interfaz.escena.getMatrix()[12] - r.x, interfaz.escena.getMatrix()[13] - r.y, interfaz.escena.getMatrix()[14] - r.z);
+			Point3D crossDot;
+			crossDot = v.crossProduct(Point3D(0, 1, 0));
+			crossDot.Normalize();
+			crossDot.x *= interfaz.camara.IOD / 2.0;
+			crossDot.y *= interfaz.camara.IOD / 2.0;
+			crossDot.z *= interfaz.camara.IOD / 2.0;
+			//cout << crossDot.x << " " << crossDot.y << " " << crossDot.z << endl;
+
 
 			//Imagen izquierda
 			interfaz.camara.ywmax = top;
@@ -234,10 +243,12 @@ void igvInterfaz::set_glutDisplayFunc() {
 			interfaz.camara.znear = nearZ;
 			interfaz.camara.zfar = farZ;
 			interfaz.camara.IOD *= -1;
-			interfaz.camara.set(igvPunto3D(r.x, r.y, r.z), igvPunto3D(interfaz.escena.getMatrix()[12], interfaz.escena.getMatrix()[13], interfaz.escena.getMatrix()[14]), igvPunto3D(0, 1, 0));
+			interfaz.camara.set(igvPunto3D(r.x + crossDot.x, r.y + crossDot.y, r.z + crossDot.z), igvPunto3D(interfaz.escena.getMatrix()[12] + crossDot.x, interfaz.escena.getMatrix()[13] + crossDot.y, interfaz.escena.getMatrix()[14] + crossDot.z), igvPunto3D(0, 1, 0));
 			glViewport(0, 0, interfaz.ancho_ventana / 2, interfaz.alto_ventana);
 			interfaz.camara.aplicar();
 			interfaz.escena.visualizar();
+
+			
 
 			//Imagen derecha
 			interfaz.camara.ywmax = top;
@@ -247,7 +258,7 @@ void igvInterfaz::set_glutDisplayFunc() {
 			interfaz.camara.znear = nearZ;
 			interfaz.camara.zfar = farZ;
 			interfaz.camara.IOD = abs((interfaz.camara.IOD));
-			interfaz.camara.set(igvPunto3D(r.x, r.y, r.z), igvPunto3D(interfaz.escena.getMatrix()[12], interfaz.escena.getMatrix()[13], interfaz.escena.getMatrix()[14]), igvPunto3D(0, 1, 0));
+			interfaz.camara.set(igvPunto3D(r.x - crossDot.x, r.y - crossDot.y, r.z - crossDot.z), igvPunto3D(interfaz.escena.getMatrix()[12] - crossDot.x, interfaz.escena.getMatrix()[13] - crossDot.y, interfaz.escena.getMatrix()[14] - crossDot.z), igvPunto3D(0, 1, 0));
 			glViewport(interfaz.ancho_ventana / 2, 0, interfaz.ancho_ventana / 2, interfaz.alto_ventana);
 			interfaz.camara.aplicar();
 			interfaz.escena.visualizar();

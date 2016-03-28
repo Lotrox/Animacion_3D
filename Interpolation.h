@@ -34,6 +34,15 @@ public:
 		x /= norm; y /= norm; z /= norm;
 	}
 
+	Point3D& crossProduct(const Point3D& a) {
+		double Rx, Ry, Rz;
+		Rx = (y * a.z) - (z * a.y);
+		Ry = (z * a.x) - (x * a.z);
+		Rz = (x * a.y) - (y * a.x);
+		Point3D *p = new Point3D(Rx, Ry, Rz);
+		return *p;
+	}
+
 	Point3D& operator=(const Point3D& a) {
 		x = a.x;
 		y = a.y;

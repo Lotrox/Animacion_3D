@@ -30,7 +30,7 @@ igvEscena3D::~igvEscena3D() {}
 // Metodos publicos 
 
 void pintar_ejes(void) {
-	glLineWidth(1);
+	glLineWidth(2);
 	GLfloat rojo[] = { 1,0,0,1.0 };
 	GLfloat verde[] = { 0,1,0,1.0 };
 	GLfloat azul[] = { 0,0,1,1.0 };
@@ -218,10 +218,9 @@ void escaladoNoUniforme() {
 
 void igvEscena3D::visualizar(void) {
 	// crear luces
-	GLfloat luz0[] = { 0,3,-3,1 }; // luz puntual
-	glLightfv(GL_LIGHT0, GL_POSITION, luz0);
-	glEnable(GL_LIGHT0);
-	glTranslatef(0.0, 0.0, 1.0);       
+	GLfloat luz0[] = { 1,1,1,1 }; // luz puntual
+	glLightfv(GL_LIGHT0, GL_SPECULAR, luz0);
+	glEnable(GL_LIGHT0);   
 	// crear el modelo
 	glPushMatrix(); // guarda la matriz de modelado
 
