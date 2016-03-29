@@ -354,15 +354,15 @@ void igvInterfaz::set_glutDisplayFunc() {
 		cv::imwrite("screenshot.bmp", buffer);*/
 		static int g = 0;
 		g++;
-		if (g > 0) {
-			writer->open("filename.avi", CV_FOURCC('X', 'V', 'I', 'D'), 30, cv::Size(interfaz.get_alto_ventana(), interfaz.get_ancho_ventana()), 1);
+		if (g == 1) {
+			writer->open("recorded.avi", CV_FOURCC('D', 'I', 'V', 'X'), 100, cv::Size(interfaz.get_ancho_ventana(), interfaz.get_alto_ventana()), 1);
 		}
-		cout << g << endl;
+		
 		if (g < 500) {
 			cv::Mat frame(interfaz.get_alto_ventana(), interfaz.get_ancho_ventana(), CV_8UC3);
 			glPixelStorei(GL_PACK_ALIGNMENT, (frame.step & 3) ? 1 : 4);
 			glPixelStorei(GL_PACK_ROW_LENGTH, frame.step / frame.elemSize());
-			glReadPixels(0, 0, frame.cols, frame.rows, GL_BGR_EXT, GL_UNSIGNED_BYTE, frame.data);
+			glReadPixels(0, 0, frame.cols, frame.rows, GL_RGB, GL_UNSIGNED_BYTE, frame.data);
 			cv::Mat flipped(frame);
 			cv::flip(frame, flipped, 0);
 			writer->write(frame);
