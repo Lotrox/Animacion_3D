@@ -6,9 +6,10 @@
 igvInterfaz interfaz;
 
 int main (int argc, char** argv) {
+	
 	// inicializa la ventana de visualización
 	interfaz.configura_entorno(argc,argv,
-		                         800,600, // tamaño de la ventana
+		                         1366,768, // tamaño de la ventana
 														 100,100, // posicion de la ventana
 														 "Animacion 3D - PR4." // título de la ventana
 														 );

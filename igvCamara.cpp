@@ -6,7 +6,7 @@
 
 // Metodos constructores
 
-igvCamara::igvCamara() { vista = NINGUNO; panoramico = false; multiples = false; estereographic = true; IOD = 0.25; }
+igvCamara::igvCamara() { vista = NINGUNO; panoramico = false; multiples = false; estereographic = true; IOD = 0.2; }
 
 igvCamara::~igvCamara () {}
 
