@@ -25,6 +25,7 @@ class igvEscena3D {
 
 		// Métodos
 		// método con las llamadas OpenGL para visualizar la escena
+		bool video;
     void visualizar();	
 	bool get_ejes() {return ejes;};
 	void set_ejes(bool _ejes){ejes = _ejes;};

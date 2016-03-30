@@ -6,7 +6,9 @@
 
 // Metodos constructores
 
-igvCamara::igvCamara() { vista = NINGUNO; panoramico = false; multiples = false; estereographic = true; IOD = 0.2; }
+igvCamara::igvCamara() { 
+	vista = NINGUNO; panoramico = false; multiples = false; estereographic = true; IOD = 0.2; fovy = 25; screenZ = 20;
+}
 
 igvCamara::~igvCamara () {}
 
@@ -70,11 +72,10 @@ void igvCamara::aplicar(void) {
 		gluPerspective(angulo,raspecto,znear,zfar);
 	}
 	
-	//if (tipo == IGV_FRUSTUM) glTranslatef(IOD / 2, 0.0, 0.0);        //translate to cancel parallax
+
 	glMatrixMode (GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(P0[X], P0[Y], P0[Z], r[X], r[Y], r[Z], V[X], V[Y], V[Z]);
-	/*if(tipo!=IGV_FRUSTUM)*/
 }
 
 

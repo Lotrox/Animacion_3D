@@ -27,6 +27,8 @@ class igvCamara {
 		bool multiples;
 
 		double IOD; //intraocular distance
+		double fovy;  //field of view in y-axis
+		double screenZ; //screen projection plane
 
 		tipoDeVista vista; // Tipo de vista: Ninguno, Alzado, Planta, Perfil
 		

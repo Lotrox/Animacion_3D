@@ -60,6 +60,7 @@ void igvInterfaz::configura_entorno(int argc, char** argv,
 
 void igvInterfaz::inicia_bucle_visualizacion() {
 	glutMainLoop(); // inicia el bucle de visualizacion de OpenGL
+	
 }
 
 
@@ -128,12 +129,28 @@ void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
 		interfaz.camara.aplicar();
 	  break;
 	case ',': // 
-		interfaz.camara.IOD += 0.1;
-		cout << interfaz.camara.IOD << endl;
+		interfaz.camara.fovy += 1;
+		cout << "FOVY: " << interfaz.camara.fovy << endl;
 		break;
-	case '.': //
+	case ';': //
+		interfaz.camara.fovy -= 1;
+		cout << "FOVY: " << interfaz.camara.fovy << endl;
+		break;
+	case '<': // 
+		interfaz.camara.screenZ += 10;
+		cout << "SCREENZ: " << interfaz.camara.screenZ << endl;
+		break;
+	case '>': //
+		interfaz.camara.screenZ -= 10;
+		cout << "SCREENZ: " << interfaz.camara.screenZ << endl;
+		break;
+	case '.': // 
+		interfaz.camara.IOD += 0.1;
+		cout << "IOD: " << interfaz.camara.IOD << endl;
+		break;
+	case ':': //
 		interfaz.camara.IOD -= 0.1;
-		cout << interfaz.camara.IOD << endl;
+		cout << "IOD: " << interfaz.camara.IOD << endl;
 		break;
     case 'c': // incrementar la distancia del plano cercano
 		interfaz.camara.znear+=0.2;
@@ -190,6 +207,7 @@ void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
   }
 
 	glutPostRedisplay(); // renueva el contenido de la ventana de vision y redibuja la escena
+	
 }
 
 void igvInterfaz::set_glutReshapeFunc(int w, int h) {
@@ -205,188 +223,190 @@ void igvInterfaz::set_glutReshapeFunc(int w, int h) {
 
 #define DTR 0.0174532925
 
+
+
 void igvInterfaz::set_glutDisplayFunc() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // borra la ventana y el z-buffer
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // borra la ventana y el z-buffer
+		/*Modificar las coordenadas y vector dirección de la cámara para realizar el traveling.*/
+		static Point3D r;
+		if (interfaz.travel) {
+			static float lambda = 0;
+			static int keyFrame = 0;
 
-	/*Modificar las coordenadas y vector dirección de la cámara para realizar el traveling.*/
-	static Point3D r;
-	if (interfaz.travel) {
-		static float lambda = 0;
-		static int keyFrame = 0;
+			if (lambda > 1) {
+				lambda = 0;
+				if (keyFrame + 2 < util::TAM_T) keyFrame++;
+				else keyFrame = 0;
+			};
+			lambda += 1.0 / (util::kFramesT[keyFrame + 1] - util::kFramesT[keyFrame]);
+			int ini, end;
+			if (keyFrame == 0) ini = keyFrame;
+			else ini = keyFrame - 1;
+			if (keyFrame + 1 == util::TAM_T - 1) end = util::TAM_T - 1;
+			else end = keyFrame + 2;
+			r = HermiteInterpolate(util::pointsT[ini], util::pointsT[keyFrame], util::pointsT[keyFrame + 1], util::pointsT[end], lambda, 0, 0);
 
-		if (lambda > 1) {
-			lambda = 0;
-			if (keyFrame + 2 < util::TAM_T) keyFrame++;
-			else keyFrame = 0;
-		};
-		lambda += 1.0 / (util::kFramesT[keyFrame + 1] - util::kFramesT[keyFrame]);
-		int ini, end;
-		if (keyFrame == 0) ini = keyFrame;
-		else ini = keyFrame - 1;
-		if (keyFrame + 1 == util::TAM_T - 1) end = util::TAM_T - 1;
-		else end = keyFrame + 2;
-		r = HermiteInterpolate(util::pointsT[ini], util::pointsT[keyFrame], util::pointsT[keyFrame + 1], util::pointsT[end], lambda, 0, 0);
-
-	}
-
-	if (interfaz.camara.estereographic) { //Viewports para la visualización del par estéreo.
-		interfaz.camara.tipo = IGV_FRUSTUM;
-
-		double fovy = 25;                                          //field of view in y-axis
-		double aspect = double(interfaz.ancho_ventana / 2) / double(interfaz.alto_ventana / 2);  //screen aspect ratio
-		double nearZ = 1;                                        //near clipping plane
-		double farZ = 40.0;                                        //far clipping plane
-		double screenZ = 40.0;                                     //screen projection plane
-
-		double top = nearZ*tan(DTR*fovy / 2);                    //sets top of frustum based on fovy and near clipping plane
-		double right = aspect*top;                             //sets right of frustum based on aspect ratio
-		double frustumshift = (interfaz.camara.IOD / 2)*nearZ / screenZ;
-
-		/*Test*/
-		Point3D v(interfaz.escena.getMatrix()[12] - r.x, interfaz.escena.getMatrix()[13] - r.y, interfaz.escena.getMatrix()[14] - r.z);
-		Point3D crossDot;
-		crossDot = v.crossProduct(Point3D(0, 1, 0));
-		crossDot.Normalize();
-		crossDot.x *= interfaz.camara.IOD / 2.0;
-		crossDot.y *= interfaz.camara.IOD / 2.0;
-		crossDot.z *= interfaz.camara.IOD / 2.0;
-		//cout << crossDot.x << " " << crossDot.y << " " << crossDot.z << endl;
-
-
-		//Imagen izquierda
-		interfaz.camara.ywmax = top;
-		interfaz.camara.ywmin = -top;
-		interfaz.camara.xwmin = -right + frustumshift;
-		interfaz.camara.xwmax = right + frustumshift;
-		interfaz.camara.znear = nearZ;
-		interfaz.camara.zfar = farZ;
-		interfaz.camara.IOD *= -1;
-		interfaz.camara.set(igvPunto3D(r.x + crossDot.x, r.y + crossDot.y, r.z + crossDot.z), igvPunto3D(interfaz.escena.getMatrix()[12] + crossDot.x, interfaz.escena.getMatrix()[13] + crossDot.y, interfaz.escena.getMatrix()[14] + crossDot.z), igvPunto3D(0, 1, 0));
-		glViewport(0, 0, interfaz.ancho_ventana / 2, interfaz.alto_ventana);
-		interfaz.camara.aplicar();
-		interfaz.escena.visualizar();
-
-
-
-		//Imagen derecha
-		interfaz.camara.ywmax = top;
-		interfaz.camara.ywmin = -top;
-		interfaz.camara.xwmin = -right - frustumshift;
-		interfaz.camara.xwmax = right - frustumshift;
-		interfaz.camara.znear = nearZ;
-		interfaz.camara.zfar = farZ;
-		interfaz.camara.IOD = abs((interfaz.camara.IOD));
-		interfaz.camara.set(igvPunto3D(r.x - crossDot.x, r.y - crossDot.y, r.z - crossDot.z), igvPunto3D(interfaz.escena.getMatrix()[12] - crossDot.x, interfaz.escena.getMatrix()[13] - crossDot.y, interfaz.escena.getMatrix()[14] - crossDot.z), igvPunto3D(0, 1, 0));
-		glViewport(interfaz.ancho_ventana / 2, 0, interfaz.ancho_ventana / 2, interfaz.alto_ventana);
-		interfaz.camara.aplicar();
-		interfaz.escena.visualizar();
-	}
-	else {
-		interfaz.camara.tipo = IGV_PERSPECTIVA;
-		interfaz.camara.set(igvPunto3D(r.x, r.y, r.z), igvPunto3D(interfaz.escena.getMatrix()[12], interfaz.escena.getMatrix()[13], interfaz.escena.getMatrix()[14]), igvPunto3D(0, 1, 0));
-		interfaz.camara.aplicar();
-	}
-
-
-	// se establece el viewport
-	if (!interfaz.camara.estereographic) {
-		if (!interfaz.camara.panoramico) {
-			glViewport(0, 0, interfaz.get_ancho_ventana(), interfaz.get_alto_ventana());
 		}
-		else if (interfaz.camara.panoramico) {
-			glViewport(0, (interfaz.alto_ventana - interfaz.ancho_ventana*(9.0 / 16.0)) / 2, interfaz.ancho_ventana, interfaz.ancho_ventana*(9.0 / 16.0));
+
+		/*--------ESTEREOSCOPIA-----------*/
+		if (interfaz.camara.estereographic) { //Viewports para la visualización del par estéreo.
+			interfaz.camara.tipo = IGV_FRUSTUM;
+
+			double aspect = double(interfaz.ancho_ventana / 2) / double(interfaz.alto_ventana / 2);  //screen aspect ratio
+			double nearZ = 1;                                        //near clipping plane
+			double farZ = 40.0;                                        //far clipping plane
+			double top = nearZ*tan(DTR*interfaz.camara.fovy / 2);                    //sets top of frustum based on fovy and near clipping plane
+			double right = aspect*top;                             //sets right of frustum based on aspect ratio
+			double frustumshift = (interfaz.camara.IOD / 2)*nearZ / interfaz.camara.screenZ;
+
+			/*Fix posición*/
+			Point3D v(interfaz.escena.getMatrix()[12] - r.x, interfaz.escena.getMatrix()[13] - r.y, interfaz.escena.getMatrix()[14] - r.z);
+			Point3D crossDot;
+			crossDot = v.crossProduct(Point3D(0, 1, 0));
+			crossDot.Normalize();
+			crossDot.x *= interfaz.camara.IOD / 2.0;
+			crossDot.y *= interfaz.camara.IOD / 2.0;
+			crossDot.z *= interfaz.camara.IOD / 2.0;
+
+
+			//Imagen izquierda
+			interfaz.camara.ywmax = top;
+			interfaz.camara.ywmin = -top;
+			interfaz.camara.xwmin = -right + frustumshift;
+			interfaz.camara.xwmax = right + frustumshift;
+			interfaz.camara.znear = nearZ;
+			interfaz.camara.zfar = farZ;
+			interfaz.camara.IOD *= -1;
+			interfaz.camara.set(igvPunto3D(r.x + crossDot.x, interfaz.escena.getMatrix()[13] + crossDot.y, r.z + crossDot.z), igvPunto3D(interfaz.escena.getMatrix()[12] + crossDot.x, interfaz.escena.getMatrix()[13] + crossDot.y, interfaz.escena.getMatrix()[14] + crossDot.z), igvPunto3D(0, 1, 0));
+			glViewport(0, 0, interfaz.ancho_ventana / 2, interfaz.alto_ventana);
+			interfaz.camara.aplicar();
+			interfaz.escena.visualizar();
+
+			//Imagen derecha
+			interfaz.camara.ywmax = top;
+			interfaz.camara.ywmin = -top;
+			interfaz.camara.xwmin = -right - frustumshift;
+			interfaz.camara.xwmax = right - frustumshift;
+			interfaz.camara.znear = nearZ;
+			interfaz.camara.zfar = farZ;
+			interfaz.camara.IOD = abs((interfaz.camara.IOD));
+			interfaz.camara.set(igvPunto3D(r.x - crossDot.x, interfaz.escena.getMatrix()[13] - crossDot.y, r.z - crossDot.z), igvPunto3D(interfaz.escena.getMatrix()[12] - crossDot.x, interfaz.escena.getMatrix()[13] - crossDot.y, interfaz.escena.getMatrix()[14] - crossDot.z), igvPunto3D(0, 1, 0));
+			glViewport(interfaz.ancho_ventana / 2, 0, interfaz.ancho_ventana / 2, interfaz.alto_ventana);
+			interfaz.camara.aplicar();
+			interfaz.escena.visualizar();
 		}
-	}
-
-
-
-	if (interfaz.camara.multiples && !interfaz.camara.panoramico) {
-		glViewport(0, interfaz.alto_ventana / 2, interfaz.ancho_ventana / 2, interfaz.alto_ventana / 2);
-		interfaz.camara.set(igvPunto3D(3.0, 2.0, 4), igvPunto3D(0, 0, 0), igvPunto3D(0, 1.0, 0));
-		interfaz.camara.aplicar();
-		interfaz.escena.visualizar();
-
-		glViewport(interfaz.ancho_ventana / 2, interfaz.alto_ventana / 2, interfaz.ancho_ventana / 2, interfaz.alto_ventana / 2);
-		interfaz.camara.set(igvPunto3D(0, 5, 0), igvPunto3D(0, 0, 0), igvPunto3D(1, 0, 0));
-		interfaz.camara.aplicar();
-		interfaz.escena.visualizar();
-
-		glViewport(0, 0, interfaz.ancho_ventana / 2, interfaz.alto_ventana / 2);
-		interfaz.camara.set(igvPunto3D(5, 0, 0), igvPunto3D(0, 0, 0), igvPunto3D(0, 1, 0));
-		interfaz.camara.aplicar();
-		interfaz.escena.visualizar();
-
-		glViewport(interfaz.ancho_ventana / 2, 0, interfaz.ancho_ventana / 2, interfaz.alto_ventana / 2);
-		interfaz.camara.set(igvPunto3D(0, 0, 5), igvPunto3D(0, 0, 0), igvPunto3D(0, 1, 0));
-		interfaz.camara.aplicar();
-		interfaz.escena.visualizar();
-	}
-	if (interfaz.camara.multiples && interfaz.camara.panoramico) {
-		glViewport(0, interfaz.alto_ventana / 2, interfaz.ancho_ventana / 2, interfaz.ancho_ventana / 2 * (9.0 / 16.0));
-		interfaz.camara.set(igvPunto3D(3.0, 2.0, 4), igvPunto3D(0, 0, 0), igvPunto3D(0, 1.0, 0));
-		interfaz.camara.aplicar();
-		interfaz.escena.visualizar();
-
-		glViewport(interfaz.get_ancho_ventana() / 2.0, interfaz.get_alto_ventana() / 2.0, interfaz.get_ancho_ventana() / 2.0, interfaz.get_ancho_ventana() / 2.0*(9.0 / 16.0));
-		interfaz.camara.set(igvPunto3D(0, 5, 0), igvPunto3D(0, 0, 0), igvPunto3D(1, 0, 0));
-		interfaz.camara.aplicar();
-		interfaz.escena.visualizar();
-
-		glViewport(0, (interfaz.get_alto_ventana() - interfaz.get_ancho_ventana()*(9.0 / 16.0)) / 2.0, interfaz.get_ancho_ventana() / 2.0, interfaz.get_ancho_ventana() / 2.0*(9.0 / 16.0));
-		interfaz.camara.set(igvPunto3D(5, 0, 0), igvPunto3D(0, 0, 0), igvPunto3D(0, 1, 0));
-		interfaz.camara.aplicar();
-		interfaz.escena.visualizar();
-
-		glViewport(interfaz.get_ancho_ventana() / 2.0, (interfaz.get_alto_ventana() - interfaz.get_ancho_ventana()*(9.0 / 16.0)) / 2.0, interfaz.get_ancho_ventana() / 2.0, interfaz.get_ancho_ventana() / 2.0*(9.0 / 16.0));
-		interfaz.camara.set(igvPunto3D(0, 0, 5), igvPunto3D(0, 0, 0), igvPunto3D(0, 1, 0));
-		interfaz.camara.aplicar();
-		interfaz.escena.visualizar();
-	}
-	//visualiza la escena
-
-	if (!interfaz.camara.estereographic) interfaz.escena.visualizar();
-	// refresca la ventana
-	glutSwapBuffers(); // se utiliza, en vez de glFlush(), para evitar el parpadeo
-	
-	time_t now = time(0);
-	string text = to_string(now);
-	text = "Records/" + text;
-	
-	if (photo) {
-		photo = false;
-		cv::Mat buffer(interfaz.get_alto_ventana(), interfaz.get_ancho_ventana(), CV_8UC3);
-		glPixelStorei(GL_PACK_ALIGNMENT, (buffer.step & 3) ? 1 : 4);
-		glPixelStorei(GL_PACK_ROW_LENGTH, buffer.step / buffer.elemSize());
-		glReadPixels(0, 0, buffer.cols, buffer.rows, GL_BGR_EXT, GL_UNSIGNED_BYTE, buffer.data);
-		cv::Mat flipped(buffer);
-		cv::flip(buffer, flipped, 0);
-		// Write to file
-		cv::imwrite(text += ".png", buffer);
-	}
-
-	static VideoWriter* writer = new VideoWriter();
-	static int f = 0;
-
-	
-
-	if (video) {
-		f++;
-		if (f == 1) {
-		writer->open(text += ".avi", CV_FOURCC('D', 'I', 'V', 'X'), 60, cv::Size(interfaz.get_ancho_ventana(), interfaz.get_alto_ventana()), 1);
-		cout << "Iniciando grabacion!" << endl;
+		else {
+			interfaz.camara.tipo = IGV_PERSPECTIVA;
+			interfaz.camara.set(igvPunto3D(r.x, r.y, r.z), igvPunto3D(interfaz.escena.getMatrix()[12], interfaz.escena.getMatrix()[13], interfaz.escena.getMatrix()[14]), igvPunto3D(0, 1, 0));
+			interfaz.camara.aplicar();
 		}
-		cv::Mat frame(interfaz.get_alto_ventana(), interfaz.get_ancho_ventana(), CV_8UC3);
-		glPixelStorei(GL_PACK_ALIGNMENT, (frame.step & 3) ? 1 : 4);
-		glPixelStorei(GL_PACK_ROW_LENGTH, frame.step / frame.elemSize());
-		glReadPixels(0, 0, frame.cols, frame.rows, GL_RGB, GL_UNSIGNED_BYTE, frame.data);
-		cv::Mat flipped(frame);
-		cv::flip(frame, flipped, 0);
-		writer->write(frame);
-	}else if(writer->isOpened()) {
-		writer->release();
-		cout << "Video guaradado correctamente!" << endl;
-		f = 0;
-	}
+
+
+		// se establece el viewport
+		if (!interfaz.camara.estereographic) {
+			if (!interfaz.camara.panoramico) {
+				glViewport(0, 0, interfaz.get_ancho_ventana(), interfaz.get_alto_ventana());
+			}
+			else if (interfaz.camara.panoramico) {
+				glViewport(0, (interfaz.alto_ventana - interfaz.ancho_ventana*(9.0 / 16.0)) / 2, interfaz.ancho_ventana, interfaz.ancho_ventana*(9.0 / 16.0));
+			}
+		}
+
+
+
+		if (interfaz.camara.multiples && !interfaz.camara.panoramico) {
+			glViewport(0, interfaz.alto_ventana / 2, interfaz.ancho_ventana / 2, interfaz.alto_ventana / 2);
+			interfaz.camara.set(igvPunto3D(3.0, 2.0, 4), igvPunto3D(0, 0, 0), igvPunto3D(0, 1.0, 0));
+			interfaz.camara.aplicar();
+			interfaz.escena.visualizar();
+
+			glViewport(interfaz.ancho_ventana / 2, interfaz.alto_ventana / 2, interfaz.ancho_ventana / 2, interfaz.alto_ventana / 2);
+			interfaz.camara.set(igvPunto3D(0, 5, 0), igvPunto3D(0, 0, 0), igvPunto3D(1, 0, 0));
+			interfaz.camara.aplicar();
+			interfaz.escena.visualizar();
+
+			glViewport(0, 0, interfaz.ancho_ventana / 2, interfaz.alto_ventana / 2);
+			interfaz.camara.set(igvPunto3D(5, 0, 0), igvPunto3D(0, 0, 0), igvPunto3D(0, 1, 0));
+			interfaz.camara.aplicar();
+			interfaz.escena.visualizar();
+
+
+			glViewport(interfaz.ancho_ventana / 2, 0, interfaz.ancho_ventana / 2, interfaz.alto_ventana / 2);
+			interfaz.camara.set(igvPunto3D(0, 0, 5), igvPunto3D(0, 0, 0), igvPunto3D(0, 1, 0));
+			interfaz.camara.aplicar();
+			interfaz.escena.visualizar();
+		}
+		if (interfaz.camara.multiples && interfaz.camara.panoramico) {
+			glViewport(0, interfaz.alto_ventana / 2, interfaz.ancho_ventana / 2, interfaz.ancho_ventana / 2 * (9.0 / 16.0));
+			interfaz.camara.set(igvPunto3D(3.0, 2.0, 4), igvPunto3D(0, 0, 0), igvPunto3D(0, 1.0, 0));
+			interfaz.camara.aplicar();
+			interfaz.escena.visualizar();
+
+			glViewport(interfaz.get_ancho_ventana() / 2.0, interfaz.get_alto_ventana() / 2.0, interfaz.get_ancho_ventana() / 2.0, interfaz.get_ancho_ventana() / 2.0*(9.0 / 16.0));
+			interfaz.camara.set(igvPunto3D(0, 5, 0), igvPunto3D(0, 0, 0), igvPunto3D(1, 0, 0));
+			interfaz.camara.aplicar();
+			interfaz.escena.visualizar();
+
+			glViewport(0, (interfaz.get_alto_ventana() - interfaz.get_ancho_ventana()*(9.0 / 16.0)) / 2.0, interfaz.get_ancho_ventana() / 2.0, interfaz.get_ancho_ventana() / 2.0*(9.0 / 16.0));
+			interfaz.camara.set(igvPunto3D(5, 0, 0), igvPunto3D(0, 0, 0), igvPunto3D(0, 1, 0));
+			interfaz.camara.aplicar();
+			interfaz.escena.visualizar();
+
+			glViewport(interfaz.get_ancho_ventana() / 2.0, (interfaz.get_alto_ventana() - interfaz.get_ancho_ventana()*(9.0 / 16.0)) / 2.0, interfaz.get_ancho_ventana() / 2.0, interfaz.get_ancho_ventana() / 2.0*(9.0 / 16.0));
+			interfaz.camara.set(igvPunto3D(0, 0, 5), igvPunto3D(0, 0, 0), igvPunto3D(0, 1, 0));
+			interfaz.camara.aplicar();
+			interfaz.escena.visualizar();
+		}
+		//visualiza la escena
+
+		if (!interfaz.camara.estereographic) interfaz.escena.visualizar();
+		// refresca la ventana
+		
+		glutSwapBuffers(); // se utiliza, en vez de glFlush(), para evitar el parpadeo
+		
+		time_t now = time(0);
+		string text = to_string(now);
+		text = "Records/" + text;
+
+		/*--------CAPTURA DE PANTALLA----------*/
+		if (photo) {
+			photo = false;
+			cv::Mat buffer(interfaz.get_alto_ventana(), interfaz.get_ancho_ventana(), CV_8UC3);
+			glPixelStorei(GL_PACK_ALIGNMENT, (buffer.step & 3) ? 1 : 4);
+			glPixelStorei(GL_PACK_ROW_LENGTH, buffer.step / buffer.elemSize());
+			glReadPixels(0, 0, buffer.cols, buffer.rows, GL_BGR_EXT, GL_UNSIGNED_BYTE, buffer.data);
+			cv::Mat flipped(buffer);
+			cv::flip(buffer, flipped, 0);
+			// Write to file
+			cv::imwrite(text += ".png", buffer);
+		}
+
+		static VideoWriter* writer = new VideoWriter();
+		static bool recording = false;
+
+		/*---------GRABACION DE VIDEO---------*/
+		if (video) {
+			if (recording == 0) {
+				writer->open(text += ".avi", CV_FOURCC('D', 'I', 'V', 'X'), 60, cv::Size(interfaz.get_ancho_ventana(), interfaz.get_alto_ventana()), 1);
+				cout << "Iniciando grabacion!" << endl;
+				interfaz.escena.video = true;
+				recording = true;
+			}
+			
+			cv::Mat frame(interfaz.get_alto_ventana(), interfaz.get_ancho_ventana(), CV_8UC3);
+			glPixelStorei(GL_PACK_ALIGNMENT, (frame.step & 3) ? 1 : 4);
+			glPixelStorei(GL_PACK_ROW_LENGTH, frame.step / frame.elemSize());
+			glReadPixels(0, 0, frame.cols, frame.rows, GL_RGB, GL_UNSIGNED_BYTE, frame.data);
+			cv::Mat flipped(frame);
+			cv::flip(frame, flipped, 0);
+			writer->write(frame);
+		}
+		else if (writer->isOpened()) {
+			writer->release();
+			cout << "Video guaradado correctamente!" << endl;
+			interfaz.escena.reloadInputs();
+			recording = false;
+		}
 }
 
 void igvInterfaz::inicializa_callbacks() {

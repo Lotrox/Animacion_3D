@@ -34,7 +34,6 @@ class igvInterfaz {
 		                                               // se llama automáticamente cuano se camba el tamaño de la ventana
 		static void set_glutDisplayFunc(); // método para visualizar la escena
 
-
 		// Metodos
 		// crea el mundo que se visualiza en la ventana
 		void crear_mundo(void);

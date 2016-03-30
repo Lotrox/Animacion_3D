@@ -3,6 +3,13 @@
 #include <vector>
 #include <iostream>
 #include "igvEscena3D.h"
+#include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat)
+#include <opencv2/highgui/highgui.hpp>  // Video write
+#include <opencv2/imgproc/imgproc.hpp>
+
+#define FPS 50
+
+using namespace cv;
 
 static int keyFrame = 0; //Fotograma clave actual.
 static float lambda = 0; //Valor entre 0 y 1 de la interpolación lineal.
@@ -21,6 +28,7 @@ igvEscena3D::igvEscena3D() {
 	pause = false;
 	lineal = false;
 	trayec = true;
+	video = false;
 	LoadInputs();
 	LoadSpeed();
 }
@@ -220,17 +228,22 @@ void igvEscena3D::visualizar(void) {
 	// crear luces
 	GLfloat luz0[] = { 1,1,1,1 }; // luz puntual
 	glLightfv(GL_LIGHT0, GL_SPECULAR, luz0);
-	glEnable(GL_LIGHT0);   
+	glEnable(GL_LIGHT0);
 	// crear el modelo
 	glPushMatrix(); // guarda la matriz de modelado
 
 	GLfloat color_rojo[] = { 1,0,0 };
 	GLfloat color_azul[] = { 0,0,1 };
 	GLfloat color_negro[] = { 0,0,0 };
-
+	
+	//Ajuste para velocidad de grabacion.
+	if (video) for (int i = 0; i < TAM_V; i++) {
+		video = false;
+		velocity[i] *= 5;
+	}
 	// se pintan los ejes
 	if (ejes) pintar_ejes();
-	
+
 
 	if (input) { //Recargar parametros de entrada.
 		input = false;
@@ -239,10 +252,9 @@ void igvEscena3D::visualizar(void) {
 		bufferHermite = NULL;
 	}
 
-	if(lineal) interpolacionLineal(); //Funcion LERP.
+	if (lineal) interpolacionLineal(); //Funcion LERP.
 	else interpolacionCurva(); //Funcion curva con Hermite.
 	interpolacionEsferica(); //Funcion SLERP.
-
 	m[12] = r.x; m[13] = r.y; m[14] = r.z; //Traslación desde la matriz.
 
 	glPushMatrix();
@@ -251,7 +263,6 @@ void igvEscena3D::visualizar(void) {
 		glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
 		glutSolidTeapot(1); //Visualización del modelo.
 	glPopMatrix();
-
 	glutPostRedisplay();
 	glPopMatrix();
 }                                                                                                                                                                                                                                                                                                                                                                                      

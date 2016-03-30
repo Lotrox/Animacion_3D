@@ -28,7 +28,6 @@ namespace util {
 			delete points;
 			delete kFrames;
 		}
-		
 		float data;
 		string fich = "keyframes.txt";
 		ifstream f(fich.c_str(), std::ifstream::in);
