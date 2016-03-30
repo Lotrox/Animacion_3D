@@ -7,12 +7,15 @@
 #include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat)
 #include <opencv2/highgui/highgui.hpp>  // Video write
 #include <opencv2/imgproc/imgproc.hpp>
+#include <ctime>
 
 using namespace cv;
 
 
 extern igvInterfaz interfaz; // los callbacks deben ser estaticos y se requiere este objeto para acceder desde
                              // ellos a las variables de la clase
+static bool photo = false;
+static bool video = false;
 
 // Metodos constructores -----------------------------------
 
@@ -60,7 +63,7 @@ void igvInterfaz::inicia_bucle_visualizacion() {
 }
 
 
-static bool photo = false;
+
 void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
 
 	/* IMPORTANTE: en la implementación de este método hay que cambiar convenientemente el estado
@@ -69,6 +72,10 @@ void igvInterfaz::set_glutKeyboardFunc(unsigned char key, int x, int y) {
 	switch (key) {
 	case 'f': 
 		photo = true;
+		break;
+	case 'F':
+		video = !video;
+		break;
 	case 't':
 		interfaz.travel = !interfaz.travel;
 		break;
@@ -341,9 +348,12 @@ void igvInterfaz::set_glutDisplayFunc() {
 	// refresca la ventana
 	glutSwapBuffers(); // se utiliza, en vez de glFlush(), para evitar el parpadeo
 	
-	static VideoWriter* writer = new VideoWriter();
+	time_t now = time(0);
+	string text = to_string(now);
+	text = "Records/" + text;
+	
 	if (photo) {
-		/*photo = false;
+		photo = false;
 		cv::Mat buffer(interfaz.get_alto_ventana(), interfaz.get_ancho_ventana(), CV_8UC3);
 		glPixelStorei(GL_PACK_ALIGNMENT, (buffer.step & 3) ? 1 : 4);
 		glPixelStorei(GL_PACK_ROW_LENGTH, buffer.step / buffer.elemSize());
@@ -351,26 +361,31 @@ void igvInterfaz::set_glutDisplayFunc() {
 		cv::Mat flipped(buffer);
 		cv::flip(buffer, flipped, 0);
 		// Write to file
-		cv::imwrite("screenshot.bmp", buffer);*/
-		static int g = 0;
-		g++;
-		if (g == 1) {
-			writer->open("recorded.avi", CV_FOURCC('D', 'I', 'V', 'X'), 100, cv::Size(interfaz.get_ancho_ventana(), interfaz.get_alto_ventana()), 1);
+		cv::imwrite(text += ".png", buffer);
+	}
+
+	static VideoWriter* writer = new VideoWriter();
+	static int f = 0;
+
+	
+
+	if (video) {
+		f++;
+		if (f == 1) {
+		writer->open(text += ".avi", CV_FOURCC('D', 'I', 'V', 'X'), 60, cv::Size(interfaz.get_ancho_ventana(), interfaz.get_alto_ventana()), 1);
+		cout << "Iniciando grabacion!" << endl;
 		}
-		
-		if (g < 500) {
-			cv::Mat frame(interfaz.get_alto_ventana(), interfaz.get_ancho_ventana(), CV_8UC3);
-			glPixelStorei(GL_PACK_ALIGNMENT, (frame.step & 3) ? 1 : 4);
-			glPixelStorei(GL_PACK_ROW_LENGTH, frame.step / frame.elemSize());
-			glReadPixels(0, 0, frame.cols, frame.rows, GL_RGB, GL_UNSIGNED_BYTE, frame.data);
-			cv::Mat flipped(frame);
-			cv::flip(frame, flipped, 0);
-			writer->write(frame);
-		}
-		if (g > 500) {
-			writer->release();
-			photo = false;
-		}
+		cv::Mat frame(interfaz.get_alto_ventana(), interfaz.get_ancho_ventana(), CV_8UC3);
+		glPixelStorei(GL_PACK_ALIGNMENT, (frame.step & 3) ? 1 : 4);
+		glPixelStorei(GL_PACK_ROW_LENGTH, frame.step / frame.elemSize());
+		glReadPixels(0, 0, frame.cols, frame.rows, GL_RGB, GL_UNSIGNED_BYTE, frame.data);
+		cv::Mat flipped(frame);
+		cv::flip(frame, flipped, 0);
+		writer->write(frame);
+	}else if(writer->isOpened()) {
+		writer->release();
+		cout << "Video guaradado correctamente!" << endl;
+		f = 0;
 	}
 }
 
