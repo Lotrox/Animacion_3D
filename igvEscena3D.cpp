@@ -6,8 +6,8 @@
 #include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat)
 #include <opencv2/highgui/highgui.hpp>  // Video write
 #include <opencv2/imgproc/imgproc.hpp>
-
-#define FPS 50
+#include <thread>
+#include <chrono>
 
 using namespace cv;
 
@@ -71,7 +71,7 @@ void pintarPuntos() {
 
 void pintarTrayectoria() {
 	pintarPuntos();
-	GLfloat color_verde[] = { 0.3,1,0.6 };
+	GLfloat color_verde[] = { 0.3f, 1.0f, 0.6f };
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_verde);
 	
 	for (int i = 0; i < util::TAM - 1; i++) {
@@ -144,8 +144,7 @@ void igvEscena3D::interpolacionCurva() {
 		if (keyVelocity + 1 < TAM_V) keyVelocity++;
 		else keyVelocity = 0;
 
-		if (keyVelocity == 1)  keyVelocity - 1;
-		else ini2 = keyVelocity - 2;
+		if (keyVelocity != 1) ini2 = keyVelocity - 2;
 		if (keyVelocity + 1 >= TAM_V - 1) end2 = TAM_V - 1;
 		else end2 = keyVelocity + 1;
 	}
@@ -224,6 +223,9 @@ void escaladoNoUniforme() {
 	glScaled(rR.x, rR.y, rR.z);
 }
 
+
+
+
 void igvEscena3D::visualizar(void) {
 	// crear luces
 	GLfloat luz0[] = { 1,1,1,1 }; // luz puntual
@@ -237,10 +239,10 @@ void igvEscena3D::visualizar(void) {
 	GLfloat color_negro[] = { 0,0,0 };
 	
 	//Ajuste para velocidad de grabacion.
-	if (video) for (int i = 0; i < TAM_V; i++) {
+	/*if (video) for (int i = 0; i < TAM_V; i++) {
 		video = false;
-		velocity[i] *= 5;
-	}
+		velocity[i] *= 2;
+	}*/
 	// se pintan los ejes
 	if (ejes) pintar_ejes();
 
@@ -250,6 +252,19 @@ void igvEscena3D::visualizar(void) {
 		LoadInputs();
 		LoadSpeed();
 		bufferHermite = NULL;
+	}
+	static int currentFrame = 0;
+
+	static auto beginTime = chrono::high_resolution_clock::now();
+	
+	auto duracion = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - beginTime);
+	cout << " (" << duracion.count() << " mili)." << endl;
+	beginTime = chrono::high_resolution_clock::now();
+	
+	int sleepTime = (int)((1000/60) - duracion.count());
+
+	if (sleepTime > 0) {
+		Sleep(sleepTime);
 	}
 
 	if (lineal) interpolacionLineal(); //Funcion LERP.
@@ -263,6 +278,6 @@ void igvEscena3D::visualizar(void) {
 		glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
 		glutSolidTeapot(1); //Visualización del modelo.
 	glPopMatrix();
-	glutPostRedisplay();
+	
 	glPopMatrix();
 }                                                                                                                                                                                                                                                                                                                                                                                      
