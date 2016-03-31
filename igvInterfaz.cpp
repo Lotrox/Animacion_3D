@@ -387,7 +387,7 @@ void igvInterfaz::set_glutDisplayFunc() {
 		/*---------GRABACION DE VIDEO---------*/
 		if (video) {
 			if (recording == 0) {
-				writer->open(text += ".avi", CV_FOURCC('D', 'I', 'V', 'X'), 30, cv::Size(interfaz.get_ancho_ventana(), interfaz.get_alto_ventana()), 1);
+				writer->open(text += ".avi", CV_FOURCC('D', 'I', 'V', 'X'), 60, cv::Size(interfaz.get_ancho_ventana(), interfaz.get_alto_ventana()), 1);
 				cout << "Iniciando grabacion!" << endl;
 				interfaz.escena.video = true;
 				recording = true;

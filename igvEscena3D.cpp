@@ -239,10 +239,10 @@ void igvEscena3D::visualizar(void) {
 	GLfloat color_negro[] = { 0,0,0 };
 	
 	//Ajuste para velocidad de grabacion.
-	/*if (video) for (int i = 0; i < TAM_V; i++) {
+	if (video) for (int i = 0; i < TAM_V; i++) {
 		video = false;
-		velocity[i] *= 2;
-	}*/
+		velocity[i] *= 1.5;
+	}
 	// se pintan los ejes
 	if (ejes) pintar_ejes();
 
@@ -258,7 +258,6 @@ void igvEscena3D::visualizar(void) {
 	static auto beginTime = chrono::high_resolution_clock::now();
 	
 	auto duracion = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - beginTime);
-	cout << " (" << duracion.count() << " mili)." << endl;
 	beginTime = chrono::high_resolution_clock::now();
 	
 	int sleepTime = (int)((1000/60) - duracion.count());
