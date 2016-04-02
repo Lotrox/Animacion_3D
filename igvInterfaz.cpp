@@ -5,7 +5,7 @@
 #include <ctime>
 #define EnableOpenCV false
 
-#ifndef EnableOpenCV
+#if EnableOpenCV
 	#include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat)
 	#include <opencv2/highgui/highgui.hpp>  // Video write
 	#include <opencv2/imgproc/imgproc.hpp>
@@ -365,7 +365,7 @@ void igvInterfaz::set_glutDisplayFunc() {
 		
 		glutSwapBuffers(); // se utiliza, en vez de glFlush(), para evitar el parpadeo
 		
-#ifndef EnableOpenCV
+#if EnableOpenCV
 		time_t now = time(0);
 		string text = to_string(now);
 		text = "Records/" + text;
@@ -398,7 +398,7 @@ void igvInterfaz::set_glutDisplayFunc() {
 			cv::Mat frame(interfaz.get_alto_ventana(), interfaz.get_ancho_ventana(), CV_8UC3);
 			glPixelStorei(GL_PACK_ALIGNMENT, (frame.step & 3) ? 1 : 4);
 			glPixelStorei(GL_PACK_ROW_LENGTH, frame.step / frame.elemSize());
-			glReadPixels(0, 0, frame.cols, frame.rows, GL_RGB, GL_UNSIGNED_BYTE, frame.data);
+			glReadPixels(0, 0, frame.cols, frame.rows, GL_BGR_EXT, GL_UNSIGNED_BYTE, frame.data);
 			cv::Mat flipped(frame);
 			cv::flip(frame, flipped, 0);
 			writer->write(frame);

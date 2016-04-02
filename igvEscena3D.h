@@ -4,6 +4,9 @@
 #include <GL/glut.h>
 #include "Util.h"
 #include "Interpolation.h"
+#include "igvTextura.h"
+#include <unordered_map>
+#include <string>
 
 class igvEscena3D {
 	protected:
@@ -14,8 +17,8 @@ class igvEscena3D {
 		bool trayec;
 		bool input;
 		bool lineal;
-		
 		GLfloat m[16]; //Matriz de modelado
+
 	public:
 		// Constructores por defecto y destructor
 		igvEscena3D();

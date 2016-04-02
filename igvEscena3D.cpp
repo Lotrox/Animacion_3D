@@ -1,10 +1,11 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      #include <cstdlib>
+#include <cstdlib>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         #include <cstdlib>
 #include <stdio.h>
 #include <vector>
 #include <iostream>
 #include "igvEscena3D.h"
 #include <thread>
 #include <chrono>
+#include "igvTextura.h"
 
 
 static int keyFrame = 0; //Fotograma clave actual.
@@ -15,11 +16,10 @@ static int c = 0;
 static int keyVelocity = 0;
 static double lambda_V = 0;
 static double lambda_new = 0;
-
 using namespace util;
 // Metodos constructores 
 
-igvEscena3D::igvEscena3D() {
+igvEscena3D::igvEscena3D(){
 	ejes = true;
 	pause = false;
 	lineal = false;
@@ -29,7 +29,9 @@ igvEscena3D::igvEscena3D() {
 	LoadSpeed();
 }
 
-igvEscena3D::~igvEscena3D() {}
+igvEscena3D::~igvEscena3D() {
+}
+
 
 // Metodos publicos 
 
@@ -219,7 +221,10 @@ void escaladoNoUniforme() {
 	glScaled(rR.x, rR.y, rR.z);
 }
 
-
+void materialNone() {
+	GLfloat ninguno[] = { 1,1,1,1 };
+	glMaterialfv(GL_FRONT, GL_EMISSION, ninguno);
+}
 
 
 void igvEscena3D::visualizar(void) {
@@ -271,8 +276,38 @@ void igvEscena3D::visualizar(void) {
 	glMultMatrixf(m);
 		escaladoNoUniforme(); //Funcion de escalado no uniforme.
 		glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
-		glutSolidTeapot(1); //Visualización del modelo.
+		glEnable(GL_TEXTURE_2D);
+			igvTextura tete("textures/tetera.bmp");
+			tete.aplicar();
+			glutSolidTeapot(1); //Visualización del modelo.
+			materialNone();
+		glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
-	
+
+	glEnable(GL_TEXTURE_2D);
+		igvTextura background("textures/cielo.bmp");
+		background.aplicar();
+	glBegin(GL_QUADS);
+		glTexCoord2f(1, 0);
+		glVertex3f(-15.5, -20, -12);
+		glTexCoord2f(1, 1);
+		glVertex3f(-15.5, 20, -12);
+		glTexCoord2f(0, 1);
+		glVertex3f(50, 20, -12);
+		glTexCoord2f(0, 0);
+		glVertex3f(50, -20, -12);
+	glEnd();
+	glBegin(GL_QUADS);
+	glTexCoord2f(1, 0);
+	glVertex3f(-15, -20, -12.5);
+	glTexCoord2f(1, 1);
+	glVertex3f(-15, 20, -12.5);
+	glTexCoord2f(0, 1);
+	glVertex3f(-15, 20, 50);
+	glTexCoord2f(0, 0);
+	glVertex3f(-15, -20, 50);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+
 	glPopMatrix();
 }                                                                                                                                                                                                                                                                                                                                                                                      
