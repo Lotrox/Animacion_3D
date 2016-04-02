@@ -3,13 +3,9 @@
 #include <vector>
 #include <iostream>
 #include "igvEscena3D.h"
-#include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat)
-#include <opencv2/highgui/highgui.hpp>  // Video write
-#include <opencv2/imgproc/imgproc.hpp>
 #include <thread>
 #include <chrono>
 
-using namespace cv;
 
 static int keyFrame = 0; //Fotograma clave actual.
 static float lambda = 0; //Valor entre 0 y 1 de la interpolación lineal.

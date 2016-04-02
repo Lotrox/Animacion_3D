@@ -1,15 +1,16 @@
 #include <cstdlib>
 #include <stdio.h>
-
 #include "igvInterfaz.h"
 #include "Util.h"
-
-#include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat)
-#include <opencv2/highgui/highgui.hpp>  // Video write
-#include <opencv2/imgproc/imgproc.hpp>
 #include <ctime>
+#define EnableOpenCV false
 
-using namespace cv;
+#ifndef EnableOpenCV
+	#include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat)
+	#include <opencv2/highgui/highgui.hpp>  // Video write
+	#include <opencv2/imgproc/imgproc.hpp>
+	using namespace cv;
+#endif /*EnableOpenCV*/
 
 
 extern igvInterfaz interfaz; // los callbacks deben ser estaticos y se requiere este objeto para acceder desde
@@ -364,6 +365,7 @@ void igvInterfaz::set_glutDisplayFunc() {
 		
 		glutSwapBuffers(); // se utiliza, en vez de glFlush(), para evitar el parpadeo
 		
+#ifndef EnableOpenCV
 		time_t now = time(0);
 		string text = to_string(now);
 		text = "Records/" + text;
@@ -387,7 +389,7 @@ void igvInterfaz::set_glutDisplayFunc() {
 		/*---------GRABACION DE VIDEO---------*/
 		if (video) {
 			if (recording == 0) {
-				writer->open(text += ".avi", CV_FOURCC('D', 'I', 'V', 'X'), 60, cv::Size(interfaz.get_ancho_ventana(), interfaz.get_alto_ventana()), 1);
+				writer->open(text += ".avi", CV_FOURCC('D', 'I', 'V', 'X'), 25, cv::Size(interfaz.get_ancho_ventana(), interfaz.get_alto_ventana()), 1);
 				cout << "Iniciando grabacion!" << endl;
 				interfaz.escena.video = true;
 				recording = true;
@@ -407,6 +409,7 @@ void igvInterfaz::set_glutDisplayFunc() {
 			interfaz.escena.reloadInputs();
 			recording = false;
 		}
+#endif /*EnableOpenCV*/
 		glutPostRedisplay();
 }
 
