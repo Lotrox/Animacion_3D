@@ -9,9 +9,9 @@ int main (int argc, char** argv) {
 	
 	// inicializa la ventana de visualización
 	interfaz.configura_entorno(argc,argv,
-		                         1366,768, // tamaño de la ventana
+		                         1024,720, // tamaño de la ventana
 														 100,100, // posicion de la ventana
-														 "Animacion 3D - PR4." // título de la ventana
+														 "Animacion 3D - PR5." // título de la ventana
 														 );
 
 	// establece las funciones callbacks para la gestión de los eventos

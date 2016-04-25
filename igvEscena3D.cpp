@@ -6,6 +6,10 @@
 #include <thread>
 #include <chrono>
 #include "igvTextura.h"
+#include <time.h>
+#include <cmath>
+#include <Windows.h>
+
 
 
 static int keyFrame = 0; //Fotograma clave actual.
@@ -19,7 +23,7 @@ static double lambda_new = 0;
 using namespace util;
 // Metodos constructores 
 
-igvEscena3D::igvEscena3D(){
+igvEscena3D::igvEscena3D() {
 	ejes = true;
 	pause = false;
 	lineal = false;
@@ -227,6 +231,111 @@ void materialNone() {
 }
 
 
+float limits = 1.5;
+float X = 0, Y = 0;
+const int MAX_PARTICLES = 3000;
+const int MIN_PARTICLES = 1000;
+int currentParticle = 1;
+float posX[MAX_PARTICLES], posY[MAX_PARTICLES];
+
+void moveParticles(int amount_of_particles) {
+	srand(time(NULL));
+	float myX, myY;
+	Sleep(1);
+	//glColor3d(2, 0.5, 0);
+	for (int i = 0; i < amount_of_particles; i++) {
+		myX = rand() % 3 + 1;
+		if (myX == 1 && posX[i] <= limits) {
+			int mytemp = rand() % 100 + 1;
+			int temp = rand() % 5 + 1;
+			posX[i] += temp*.001;
+			posY[i] += mytemp*0.0001;
+		}
+		if (myX == 2) { posX[i] += .00; posY[i] += .01; }
+		if (myX == 3 && posX[i] >= -limits) {
+			int temp = rand() % 5 + 1;
+			int mytemp = rand() % 100 + 1;
+			posX[i] -= temp*.001;
+			posY[i] += mytemp*0.0001;
+		}
+		///////////////////////////////////////////
+		if (posY[i] >= limits) {
+			posY[i] = 0;
+			posX[i] = 0;
+		}
+	}
+}
+void Reshape(int height, int width) {
+	glViewport(0, 0, width, height);
+	glClearColor(0, 0, 0, 1);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(60, (float)height / (float)width, 1, 100);
+	glMatrixMode(GL_MODELVIEW);
+}
+void Draw(void) {
+	int thingy = 1;
+	bool check = false;
+	
+	if (check == false) {
+		float R, G, B;
+		glPushMatrix();
+		glBegin(GL_TRIANGLES);
+		for (int i = 0; i < MAX_PARTICLES; i++) {
+			R = rand() % 100 + 1;
+			G = rand() % 100 + 1;
+			B = rand() % 100 + 1;
+			glColor3d(R*0.01, G*0.01, B*0.01);
+			
+			GLfloat color_rand[] = { R*0.01, G*0.01, B*0.01 };
+			GLfloat color_r[] = { 1.0f, 0, 0 };
+			GLfloat color_a[] = { 1.0f, 1.0f, 0 };
+			GLfloat color_n[] = { 1.0f, 0.0f, 1.0f };
+			if (posY[i] < 0.5) {
+				glMaterialfv(GL_FRONT, GL_EMISSION, color_a);
+			}
+			else if (posY[i] < 1) {
+				glMaterialfv(GL_FRONT, GL_EMISSION, color_n);
+				posX[i] -= 0.01;
+			}
+			else {
+				glMaterialfv(GL_FRONT, GL_EMISSION, color_r);
+				posX[i] -= 0.02;
+			}
+			glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+			glPointSize(2.0);
+			glBegin(GL_POINTS);
+				glVertex3f(X, Y, 0);
+			glEnd();
+			X = posX[i];
+			Y = posY[i];
+		}
+		glEnd();
+		glPopMatrix();
+		check = true;
+	}
+	switch (thingy) {
+	case 1:
+		Sleep(1);
+		moveParticles(currentParticle);
+		if (currentParticle != MAX_PARTICLES) {
+			currentParticle++;
+		}
+		glutPostRedisplay();
+		break;
+	}
+}
+const GLfloat light_ambient[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+const GLfloat light_diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+const GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+const GLfloat light_position[] = { 2.0f, 5.0f, 5.0f, 0.0f };
+const GLfloat mat_ambient[] = { 0.7f, 0.7f, 0.7f, 1.0f };
+const GLfloat mat_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+const GLfloat mat_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+const GLfloat high_shininess[] = { 100.0f };
+
+
+
 void igvEscena3D::visualizar(void) {
 	// crear luces
 	GLfloat luz0[] = { 1,1,1,1 }; // luz puntual
@@ -234,6 +343,7 @@ void igvEscena3D::visualizar(void) {
 	glEnable(GL_LIGHT0);
 	// crear el modelo
 	glPushMatrix(); // guarda la matriz de modelado
+	
 
 	GLfloat color_rojo[] = { 1,0,0 };
 	GLfloat color_azul[] = { 0,0,1 };
@@ -247,6 +357,7 @@ void igvEscena3D::visualizar(void) {
 	// se pintan los ejes
 	if (ejes) pintar_ejes();
 
+	static bool b = true;
 
 	if (input) { //Recargar parametros de entrada.
 		input = false;
@@ -271,15 +382,23 @@ void igvEscena3D::visualizar(void) {
 	else interpolacionCurva(); //Funcion curva con Hermite.
 	interpolacionEsferica(); //Funcion SLERP.
 	m[12] = r.x; m[13] = r.y; m[14] = r.z; //Traslación desde la matriz.
-
+	
 	glPushMatrix();
 	glMultMatrixf(m);
-		escaladoNoUniforme(); //Funcion de escalado no uniforme.
+		
+		//escaladoNoUniforme(); //Funcion de escalado no uniforme.
+		glPushMatrix();
+			materialNone();
+			glTranslatef(1.55, 0.43, 0);
+			Draw();
+			materialNone();
+		glPopMatrix();
 		glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
 		glEnable(GL_TEXTURE_2D);
 			igvTextura tete("textures/tetera.bmp");
 			tete.aplicar();
 			glutSolidTeapot(1); //Visualización del modelo.
+			
 			materialNone();
 		glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
@@ -308,6 +427,8 @@ void igvEscena3D::visualizar(void) {
 	glVertex3f(-15, -20, 50);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
-
+	
 	glPopMatrix();
-}                                                                                                                                                                                                                                                                                                                                                                                      
+}                              
+
+
