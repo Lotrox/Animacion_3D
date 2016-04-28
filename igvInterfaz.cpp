@@ -46,6 +46,8 @@ void igvInterfaz::configura_entorno(int argc, char** argv,
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
 	glEnable(GLUT_MULTISAMPLE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
 	glutInitWindowSize(_ancho_ventana,_alto_ventana);
 	glutInitWindowPosition(_pos_X,_pos_Y);
 	glutCreateWindow(_titulo.c_str());

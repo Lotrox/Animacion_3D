@@ -231,12 +231,12 @@ void materialNone() {
 }
 
 
-float limits = 1.5;
+float limits = 2;
 float X = 0, Y = 0;
-const int MAX_PARTICLES = 3000;
-const int MIN_PARTICLES = 1000;
+const int MAX_PARTICLES = 500;
+const int MIN_PARTICLES = 1;
 int currentParticle = 1;
-float posX[MAX_PARTICLES], posY[MAX_PARTICLES];
+float posX[MAX_PARTICLES], posY[MAX_PARTICLES], tempC[MAX_PARTICLES];
 
 void moveParticles(int amount_of_particles) {
 	srand(time(NULL));
@@ -248,18 +248,21 @@ void moveParticles(int amount_of_particles) {
 		if (myX == 1 && posX[i] <= limits) {
 			int mytemp = rand() % 100 + 1;
 			int temp = rand() % 5 + 1;
-			posX[i] += temp*.001;
+			if (rand() % 100 > 80)
+				temp *= -1;
+			posX[i] -= temp*.001;
 			posY[i] += mytemp*0.0001;
+			tempC[i] = temp*.1;
 		}
 		if (myX == 2) { posX[i] += .00; posY[i] += .01; }
 		if (myX == 3 && posX[i] >= -limits) {
 			int temp = rand() % 5 + 1;
 			int mytemp = rand() % 100 + 1;
 			posX[i] -= temp*.001;
-			posY[i] += mytemp*0.0001;
+			posY[i] += mytemp*0.0002;
 		}
 		///////////////////////////////////////////
-		if (posY[i] >= limits) {
+		if (posY[i] >= limits + 0.2 - (( rand() % 100) / 100)) {
 			posY[i] = 0;
 			posX[i] = 0;
 		}
@@ -273,7 +276,7 @@ void Reshape(int height, int width) {
 	gluPerspective(60, (float)height / (float)width, 1, 100);
 	glMatrixMode(GL_MODELVIEW);
 }
-void Draw(void) {
+void DrawFire(void) {
 	int thingy = 1;
 	bool check = false;
 	
@@ -282,33 +285,45 @@ void Draw(void) {
 		glPushMatrix();
 		glBegin(GL_TRIANGLES);
 		for (int i = 0; i < MAX_PARTICLES; i++) {
-			R = rand() % 100 + 1;
+			/*R = rand() % 100 + 1;
 			G = rand() % 100 + 1;
 			B = rand() % 100 + 1;
 			glColor3d(R*0.01, G*0.01, B*0.01);
 			
-			GLfloat color_rand[] = { R*0.01, G*0.01, B*0.01 };
-			GLfloat color_r[] = { 1.0f, 0, 0 };
-			GLfloat color_a[] = { 1.0f, 1.0f, 0 };
-			GLfloat color_n[] = { 1.0f, 0.0f, 1.0f };
-			if (posY[i] < 0.5) {
-				glMaterialfv(GL_FRONT, GL_EMISSION, color_a);
+			GLfloat color_rand[] = { R*0.01, G*0.01, B*0.01 };*/
+			
+			GLfloat color_a[] = { 1, 1, 0 };
+			GLfloat color_r[] = { 1, tempC[i]*2, 0 };
+			GLfloat color_n[] = { tempC[i]*2, tempC[i] / 1.1f, 0.0f };
+		
+			if (posY[i] >= 0) {
+				if(tempC[i] < 0.1)
+					glMaterialfv(GL_FRONT, GL_EMISSION, color_a);
+				else
+					glMaterialfv(GL_FRONT, GL_EMISSION, color_r);
 			}
-			else if (posY[i] < 1) {
+			if (posY[i] > 0.6) {
+				if (tempC[i] < 0.4)
+					glMaterialfv(GL_FRONT, GL_EMISSION, color_r);
+				else 
+					glMaterialfv(GL_FRONT, GL_EMISSION, color_n);
+				posX[i] -= 0.004;
+			}
+			if(posY[i] > 1){
 				glMaterialfv(GL_FRONT, GL_EMISSION, color_n);
-				posX[i] -= 0.01;
-			}
-			else {
-				glMaterialfv(GL_FRONT, GL_EMISSION, color_r);
-				posX[i] -= 0.02;
+				posX[i] -= 0.008;
 			}
 			glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-			glPointSize(2.0);
+			float tamPoint = (limits + 0.5 - posY[i]) * 3;
+			if (tamPoint < 0) tamPoint = 0;
+			X = posX[i];
+			Y = posY[i];
+			glPointSize(tamPoint);
+
 			glBegin(GL_POINTS);
 				glVertex3f(X, Y, 0);
 			glEnd();
-			X = posX[i];
-			Y = posY[i];
+			
 		}
 		glEnd();
 		glPopMatrix();
@@ -389,8 +404,8 @@ void igvEscena3D::visualizar(void) {
 		//escaladoNoUniforme(); //Funcion de escalado no uniforme.
 		glPushMatrix();
 			materialNone();
-			glTranslatef(1.55, 0.43, 0);
-			Draw();
+			glTranslatef(1.55, 0.5, 0);
+			DrawFire();
 			materialNone();
 		glPopMatrix();
 		glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
@@ -398,7 +413,6 @@ void igvEscena3D::visualizar(void) {
 			igvTextura tete("textures/tetera.bmp");
 			tete.aplicar();
 			glutSolidTeapot(1); //Visualización del modelo.
-			
 			materialNone();
 		glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
