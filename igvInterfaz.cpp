@@ -31,6 +31,8 @@ void igvInterfaz::crear_mundo(void) {
 	// crear cámaras
 	interfaz.camara.set(IGV_PERSPECTIVA, interfaz.camara.P0, interfaz.camara.r, interfaz.camara.V,
 		60, 1, 1, 100);
+	interfaz.camara.zoom(0.5);
+	interfaz.camara.aplicar();
 	util::LoadTraveling();
 }
 

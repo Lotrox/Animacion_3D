@@ -9,7 +9,7 @@
 #include <time.h>
 #include <cmath>
 #include <Windows.h>
-
+#include "Particles.h"
 
 
 static int keyFrame = 0; //Fotograma clave actual.
@@ -229,126 +229,6 @@ void materialNone() {
 	GLfloat ninguno[] = { 1,1,1,1 };
 	glMaterialfv(GL_FRONT, GL_EMISSION, ninguno);
 }
-
-
-float limits = 2;
-float X = 0, Y = 0;
-const int MAX_PARTICLES = 500;
-const int MIN_PARTICLES = 1;
-int currentParticle = 1;
-float posX[MAX_PARTICLES], posY[MAX_PARTICLES], tempC[MAX_PARTICLES];
-
-void moveParticles(int amount_of_particles) {
-	srand(time(NULL));
-	float myX, myY;
-	Sleep(1);
-	//glColor3d(2, 0.5, 0);
-	for (int i = 0; i < amount_of_particles; i++) {
-		myX = rand() % 3 + 1;
-		if (myX == 1 && posX[i] <= limits) {
-			int mytemp = rand() % 100 + 1;
-			int temp = rand() % 5 + 1;
-			if (rand() % 100 > 80)
-				temp *= -1;
-			posX[i] -= temp*.001;
-			posY[i] += mytemp*0.0001;
-			tempC[i] = temp*.1;
-		}
-		if (myX == 2) { posX[i] += .00; posY[i] += .01; }
-		if (myX == 3 && posX[i] >= -limits) {
-			int temp = rand() % 5 + 1;
-			int mytemp = rand() % 100 + 1;
-			posX[i] -= temp*.001;
-			posY[i] += mytemp*0.0002;
-		}
-		///////////////////////////////////////////
-		if (posY[i] >= limits + 0.2 - (( rand() % 100) / 100)) {
-			posY[i] = 0;
-			posX[i] = 0;
-		}
-	}
-}
-void Reshape(int height, int width) {
-	glViewport(0, 0, width, height);
-	glClearColor(0, 0, 0, 1);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(60, (float)height / (float)width, 1, 100);
-	glMatrixMode(GL_MODELVIEW);
-}
-void DrawFire(void) {
-	int thingy = 1;
-	bool check = false;
-	
-	if (check == false) {
-		float R, G, B;
-		glPushMatrix();
-		glBegin(GL_TRIANGLES);
-		for (int i = 0; i < MAX_PARTICLES; i++) {
-			/*R = rand() % 100 + 1;
-			G = rand() % 100 + 1;
-			B = rand() % 100 + 1;
-			glColor3d(R*0.01, G*0.01, B*0.01);
-			
-			GLfloat color_rand[] = { R*0.01, G*0.01, B*0.01 };*/
-			
-			GLfloat color_a[] = { 1, 1, 0 };
-			GLfloat color_r[] = { 1, tempC[i]*2, 0 };
-			GLfloat color_n[] = { tempC[i]*2, tempC[i] / 1.1f, 0.0f };
-		
-			if (posY[i] >= 0) {
-				if(tempC[i] < 0.1)
-					glMaterialfv(GL_FRONT, GL_EMISSION, color_a);
-				else
-					glMaterialfv(GL_FRONT, GL_EMISSION, color_r);
-			}
-			if (posY[i] > 0.6) {
-				if (tempC[i] < 0.4)
-					glMaterialfv(GL_FRONT, GL_EMISSION, color_r);
-				else 
-					glMaterialfv(GL_FRONT, GL_EMISSION, color_n);
-				posX[i] -= 0.004;
-			}
-			if(posY[i] > 1){
-				glMaterialfv(GL_FRONT, GL_EMISSION, color_n);
-				posX[i] -= 0.008;
-			}
-			glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-			float tamPoint = (limits + 0.5 - posY[i]) * 3;
-			if (tamPoint < 0) tamPoint = 0;
-			X = posX[i];
-			Y = posY[i];
-			glPointSize(tamPoint);
-
-			glBegin(GL_POINTS);
-				glVertex3f(X, Y, 0);
-			glEnd();
-			
-		}
-		glEnd();
-		glPopMatrix();
-		check = true;
-	}
-	switch (thingy) {
-	case 1:
-		Sleep(1);
-		moveParticles(currentParticle);
-		if (currentParticle != MAX_PARTICLES) {
-			currentParticle++;
-		}
-		glutPostRedisplay();
-		break;
-	}
-}
-const GLfloat light_ambient[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-const GLfloat light_diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-const GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-const GLfloat light_position[] = { 2.0f, 5.0f, 5.0f, 0.0f };
-const GLfloat mat_ambient[] = { 0.7f, 0.7f, 0.7f, 1.0f };
-const GLfloat mat_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
-const GLfloat mat_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-const GLfloat high_shininess[] = { 100.0f };
-
 
 
 void igvEscena3D::visualizar(void) {
