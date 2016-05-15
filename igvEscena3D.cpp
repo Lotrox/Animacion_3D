@@ -431,19 +431,25 @@ void brazo(void) {
 void cinematicaInversa(void) {
 	glPushMatrix();
 	glTranslated(0, 0.8f, 0);
-	static float x = 3; static float y = 1;
 
-	static bool a = true;
-	static float angle2 = 0;
-	static float angle = 0;
+	static float x = 0; static float y = 0; // Punto objetivo.
+	static bool n_point = true; // Variable que nos indicará si se debe calcular un nuevo punto.
+	static float angle2 = 0; // Ángulo del antebrazo.
+	static float angle = 0; // Ángulo del brazo.
+	static float v = 0.2f; // Velocidad de movimiento del brazo articulado.
+	static float longBrazo = 2.0f;
+	static float longAntBrazo = 2.0f;
+
 	GLfloat color_negro[] = { 0,0,0 };
 	glPushMatrix();
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
 	glTranslated(x, y, 0);
-	if(!a) glutSolidSphere(0.1, 40, 30);
+	if(!n_point) glutSolidSphere(0.1, 40, 30);
 	glPopMatrix();
 	//cout << angle << "  " << angle2 << endl;
-	if (a) {
+
+	// Si debemos crear un nuevo punto, generamos uno pseudo-aleatorio.
+	if (n_point) {
 		x = (40 - (rand() % 80)) / 10.0;
 		y = (rand() % 40) / 10.0;
 		if (x < 0 && y < 2)
@@ -452,33 +458,36 @@ void cinematicaInversa(void) {
 
 		float hipo = sqrt(x*x + y*y);
 		float alpha = atan2(y, x);
-		float beta = acos((2 * 2 - 2 * 2 + hipo * hipo) / (2 * 2 * hipo));
-
+		float beta = acos((longBrazo * longBrazo - longAntBrazo * longAntBrazo + hipo * hipo) / (2 * longBrazo * hipo));
 		angle2 = alpha + beta;
 		angle2 = angle2 * 180 / M_PI;
-		float gamma = acos((2 * 2 + 2 * 2 - hipo*hipo) / (2 * 2 * 2));
+
+		float gamma = acos((longBrazo * longBrazo + longAntBrazo * longAntBrazo - hipo*hipo) / (2 * longBrazo * longAntBrazo));
 		gamma = gamma * 180 / M_PI;
 		angle = gamma - 180;
-		a = false;
+
+		n_point = false;
+		if(v < 4) v += 0.1f;
 	}
 
-	a = true;
-	if (brazoD < angle - 0.5f) {
-		brazoD += 0.2f;
-		a = false;
+	n_point = true;
+	if (brazoD < angle - v) {
+		brazoD += v;
+		n_point = false;
 	}
-	else if (brazoD > angle + 0.5f) {
-		brazoD -= 0.2f;
-		a = false;
+	else if (brazoD > angle + v) {
+		brazoD -= v;
+		n_point = false;
 	}
 	
-	if (brazo2D < angle2 - 0.5f) {
-			brazo2D += 0.2f;
-			a = false;
-	}else if (brazo2D > angle2 + 0.5f) {
-		brazo2D -= 0.2f;
-		a = false;
+	if (brazo2D < angle2 - v) {
+			brazo2D += v;
+			n_point = false;
+	}else if (brazo2D > angle2 + v) {
+		brazo2D -= v;
+		n_point = false;
 	}
+
 	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
 	glEnable(GL_TEXTURE_2D);
 	igvTextura tete("textures/tetera.bmp");
