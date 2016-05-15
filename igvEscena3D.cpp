@@ -412,19 +412,80 @@ void brazo(void) {
 	glMaterialfv(GL_FRONT, GL_EMISSION, negro);
 	glRotatef(90, 0, 1, 0);
 	glPushMatrix();
-
-	glRotatef(brazo2D, 1, 0, 0);
+	glutSolidSphere(0.25, 20, 20);
+	glRotatef(-brazo2D, 1, 0, 0);
 	
 	pintar_brazo();
 	glTranslatef(0, 0, 2);
 	glutSolidSphere(0.25, 20, 20);
 	glPushMatrix();
-	glRotatef(brazoD, 1, 0, 0);
+	glRotatef(-brazoD, 1, 0, 0);
 	
 	pintar_brazo();
-	//glTranslatef(0, 0, 1.3);
-	//glutSolidSphere(0.25, 20, 20);
+	glTranslatef(0, 0, 1.8f);
+	glutSolidSphere(0.25, 20, 20);
 	glPopMatrix();
+	glPopMatrix();
+}
+
+void cinematicaInversa(void) {
+	glPushMatrix();
+	glTranslated(0, 0.8f, 0);
+	static float x = 3; static float y = 1;
+
+	static bool a = true;
+	static float angle2 = 0;
+	static float angle = 0;
+	GLfloat color_negro[] = { 0,0,0 };
+	glPushMatrix();
+	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
+	glTranslated(x, y, 0);
+	if(!a) glutSolidSphere(0.1, 40, 30);
+	glPopMatrix();
+	//cout << angle << "  " << angle2 << endl;
+	if (a) {
+		x = (40 - (rand() % 80)) / 10.0;
+		y = (rand() % 40) / 10.0;
+		if (x < 0 && y < 2)
+			y = 3;
+		cout << "Nuevo objetivo: (" << x << ", " << y << ")" << endl;
+
+		float hipo = sqrt(x*x + y*y);
+		float alpha = atan2(y, x);
+		float beta = acos((2 * 2 - 2 * 2 + hipo * hipo) / (2 * 2 * hipo));
+
+		angle2 = alpha + beta;
+		angle2 = angle2 * 180 / M_PI;
+		float gamma = acos((2 * 2 + 2 * 2 - hipo*hipo) / (2 * 2 * 2));
+		gamma = gamma * 180 / M_PI;
+		angle = gamma - 180;
+		a = false;
+	}
+
+	a = true;
+	if (brazoD < angle - 0.5f) {
+		brazoD += 0.2f;
+		a = false;
+	}
+	else if (brazoD > angle + 0.5f) {
+		brazoD -= 0.2f;
+		a = false;
+	}
+	
+	if (brazo2D < angle2 - 0.5f) {
+			brazo2D += 0.2f;
+			a = false;
+	}else if (brazo2D > angle2 + 0.5f) {
+		brazo2D -= 0.2f;
+		a = false;
+	}
+	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
+	glEnable(GL_TEXTURE_2D);
+	igvTextura tete("textures/tetera.bmp");
+	tete.aplicar();
+	brazo();
+	materialNone();
+	glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
 }
 
@@ -479,6 +540,8 @@ void igvEscena3D::visualizar(void) {
 	glPushMatrix();
 	glMultMatrixf(m);
 	//escaladoNoUniforme(); //Funcion de escalado no uniforme.
+
+	cinematicaInversa();
 	glPushMatrix();
 	materialNone();
 	glTranslatef(1.55, 0.5, 0);
@@ -518,45 +581,9 @@ void igvEscena3D::visualizar(void) {
 	glVertex3f(-15, -20, 50);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
-	//glRotatef(90, 0, 1, 0);
-	//glTranslated(0, 2, 0);
 
 	glPopMatrix();
-
-	float x = 0.8; float y = 2;
-	glBegin(GL_POINTS);
-	glPointSize(18.0);
-	glVertex3f(x, y, 0);
-	glEnd();
 	
-	
-	float angle_O = acos((x*x + y*y - 2 * 2 - 2 * 2) / (2.0f * 2 * 2));
-	float angle = angle_O * 180.0 / M_PI;
-
-	cout << angle << endl;
-	if (angle > 0) {
-		if (brazoD <= angle) 
-			brazoD += 0.2f;
-	}else {
-		if (brazoD >= angle)
-			brazoD -= 0.2f;
-	}
-
-	float angle2 = atan(- (2 * sin(angle_O))*x + (2 + 2 * cos(angle_O)*y) / ( (2 * sin(angle_O))*y + (2 + 2 * cos(angle_O))*x ));
-	angle2 = angle2 * 180.0 / M_PI;
-	if (angle2 < 0)
-		angle2 = angle2 - 90;
-	cout << angle2 << endl;
-	if (angle2 > 0) {
-		if (brazo2D <= angle2)
-			brazo2D += 0.2f;
-	}
-	else {
-		if (brazo2D >= angle2)
-			brazo2D -= 0.2f;
-	}
-	
-	brazo();
 }                              
 
 
