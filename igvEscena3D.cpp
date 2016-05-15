@@ -11,6 +11,7 @@
 #include <Windows.h>
 #include "Particles.h"
 
+#define M_PI 3.14159265
 
 static int keyFrame = 0; //Fotograma clave actual.
 static float lambda = 0; //Valor entre 0 y 1 de la interpolación lineal.
@@ -231,6 +232,202 @@ void materialNone() {
 }
 
 
+
+
+void pintar_cuerpo() {
+	GLfloat rojo[] = { 1,0,0 };
+	GLfloat amarillo[] = { 1,1,0 };
+
+	glMaterialfv(GL_FRONT, GL_EMISSION, rojo);
+	glPushMatrix();
+	glScalef(1, 3.5, 2);
+	glutSolidCube(1);
+	glPopMatrix();
+}
+
+void pintar_cabeza() {
+	GLfloat azul[] = { 0,0,1 };
+	GLfloat negro[] = { 0,0,0 };
+	GLfloat amarillo[] = { 1,1,0 };
+
+	glPushMatrix();
+	glutSolidSphere(0.9, 20, 20);
+	glPopMatrix();
+
+	glMaterialfv(GL_FRONT, GL_EMISSION, azul);
+	glTranslatef(0.7, 0.4, 0.4);
+	glutSolidSphere(0.3, 15, 15);
+
+	glMaterialfv(GL_FRONT, GL_EMISSION, azul);
+	glTranslatef(0, 0, -0.8);
+	glutSolidSphere(0.3, 15, 15);
+
+	GLUquadricObj *cuello = gluNewQuadric();
+	gluQuadricDrawStyle(cuello, GLU_FILL);
+
+	glTranslatef(-0.7, 0, 0.4);
+	glRotatef(90, 1, 0, 0);
+	gluCylinder(cuello, 0.3, 0.2, 3, 20, 20);
+
+	gluDeleteQuadric(cuello);
+}
+
+
+void pintar_hombros() {
+	GLUquadricObj *hombros = gluNewQuadric();
+	gluQuadricDrawStyle(hombros, GLU_FILL);
+
+	glPushMatrix();
+	glTranslatef(0, 0, -2);
+	gluCylinder(hombros, 0.4, 0.4, 3, 20, 20);
+	glPopMatrix();
+
+	gluDeleteQuadric(hombros);
+}
+
+void pintar_brazo() {
+
+	GLfloat negro[] = { 0,0,0 };
+	GLfloat azul[] = { 0,0,1 };
+
+	GLUquadricObj *brazo = gluNewQuadric();
+	gluQuadricDrawStyle(brazo, GLU_FILL);
+	glPushMatrix();
+	//glTranslatef(0, 0, -1);
+	gluCylinder(brazo, 0.2, 0.2, 2, 20, 20);
+	glPopMatrix();
+
+	gluDeleteQuadric(brazo);
+}
+
+void pintar_pierna() {
+	GLfloat negro[] = { 0,0,0 };
+	GLUquadricObj *pierna = gluNewQuadric();
+	gluQuadricDrawStyle(pierna, GLU_FILL);
+
+	glPushMatrix();
+	glTranslatef(0, 1.5, 0);
+	glRotatef(90, 1, 0, 0);
+	gluCylinder(pierna, 0.2, 0.2, 1.5, 20, 20);
+	glPopMatrix();
+
+	gluDeleteQuadric(pierna);
+}
+
+
+static float cuerpo = 0;
+
+static float cabezaEjeY = 0;
+static float cabezaEjeZ = 0;
+
+static float piernaDerecha = 0;
+static float piernaIzquierda = 0;
+static float brazoI = 0;
+static float brazoD = 0;
+static float brazo2D = 0;
+
+void pintarFigura() {
+	GLfloat azul[] = { 0,0,1 };
+	GLfloat amarillo[] = { 1,1,0 };
+	GLfloat negro[] = { 0,0,0 };
+
+	glInitNames();
+	/*Cuerpo*/
+	glRotatef(cuerpo, 0, 1, 0);
+	glTranslatef(0, 0.5, 0);
+	pintar_cuerpo();
+
+	/*Cabeza y cuello*/
+	glRotatef(180, 0, 1, 0);
+	glPushMatrix();
+	glRotatef(cabezaEjeY, 0, 1, 0);
+	glRotatef(cabezaEjeZ, 0, 0, 1);
+	glTranslatef(0, 3, 0);
+	pintar_cabeza();
+	glPopMatrix();
+
+
+	/*Brazo y mano derecha*/
+	glPushMatrix();
+		glTranslatef(0, 1, 0.5);
+		pintar_hombros();
+	
+		glPushMatrix();
+			
+			glRotatef(brazoD, 0, 0, 1);
+			//glRotatef(80, 1, 0, 0);
+			glTranslatef(-1, 1, 0.7f);
+			glMaterialfv(GL_FRONT, GL_EMISSION, negro);
+			pintar_brazo();
+			glTranslatef(0, 0, 1);
+			glutSolidSphere(0.25, 20, 20);
+			glTranslatef(0, 0, 0.5);
+			//glRotatef(brazoD, 0, 0, 1);
+			pintar_brazo();
+			glTranslatef(0, 0, 1.3);
+			glutSolidSphere(0.25, 20, 20);
+		glPopMatrix();
+	glPopMatrix();
+
+	/*Brazo y mano izquierda*/
+	glPushMatrix();
+		glTranslatef(0, 0, -1.3);
+		glRotatef(brazoI, 0, 0, 1);
+		glRotatef(80, -1, 0, 0);
+		glMaterialfv(GL_FRONT, GL_EMISSION, negro);
+		pintar_brazo();
+		glTranslatef(0, 0, -1);
+		glutSolidSphere(0.25, 20, 20);
+		glTranslatef(0, 0, -0.5);
+		pintar_brazo();
+		glTranslatef(0, 0, -1.3);
+		glutSolidSphere(0.25, 20, 20);
+	glPopMatrix();
+
+	/*Pierna y pie derecha*/
+	glPushMatrix();
+	glTranslatef(0.1, -3, 0.5);
+	glRotatef(piernaDerecha, 0, 0, 1);
+	glMaterialfv(GL_FRONT, GL_EMISSION, negro);
+	pintar_pierna();
+	glScalef(2, 1, 1.5);
+	glMaterialfv(GL_FRONT, GL_EMISSION, azul);
+	glutSolidSphere(0.25, 20, 20);
+	glPopMatrix();
+
+	/*Pierna y pie izquierda*/
+	glPushMatrix();
+	glTranslatef(0.1, -3, -0.5);
+	glRotatef(piernaIzquierda, 0, 0, 1);
+	glMaterialfv(GL_FRONT, GL_EMISSION, negro);
+	pintar_pierna();
+	glScalef(2, 1, 1.5);
+	glMaterialfv(GL_FRONT, GL_EMISSION, azul);
+	glutSolidSphere(0.25, 20, 20);
+	glPopMatrix();
+}
+
+void brazo(void) {
+	GLfloat negro[] = { 0,0,0 };
+	glMaterialfv(GL_FRONT, GL_EMISSION, negro);
+	glRotatef(90, 0, 1, 0);
+	glPushMatrix();
+
+	glRotatef(brazo2D, 1, 0, 0);
+	
+	pintar_brazo();
+	glTranslatef(0, 0, 2);
+	glutSolidSphere(0.25, 20, 20);
+	glPushMatrix();
+	glRotatef(brazoD, 1, 0, 0);
+	
+	pintar_brazo();
+	//glTranslatef(0, 0, 1.3);
+	//glutSolidSphere(0.25, 20, 20);
+	glPopMatrix();
+	glPopMatrix();
+}
+
 void igvEscena3D::visualizar(void) {
 	// crear luces
 	GLfloat luz0[] = { 1,1,1,1 }; // luz puntual
@@ -238,12 +435,12 @@ void igvEscena3D::visualizar(void) {
 	glEnable(GL_LIGHT0);
 	// crear el modelo
 	glPushMatrix(); // guarda la matriz de modelado
-	
+
 
 	GLfloat color_rojo[] = { 1,0,0 };
 	GLfloat color_azul[] = { 0,0,1 };
 	GLfloat color_negro[] = { 0,0,0 };
-	
+
 	//Ajuste para velocidad de grabacion.
 	if (video) for (int i = 0; i < TAM_V; i++) {
 		video = false;
@@ -263,11 +460,12 @@ void igvEscena3D::visualizar(void) {
 	static int currentFrame = 0;
 
 	static auto beginTime = chrono::high_resolution_clock::now();
-	
+
 	auto duracion = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - beginTime);
 	beginTime = chrono::high_resolution_clock::now();
-	
-	int sleepTime = (int)((1000/60) - duracion.count());
+
+	int sleepTime = (int)((1000 / 60) - duracion.count());
+
 
 	if (sleepTime > 0) {
 		Sleep(sleepTime);
@@ -277,38 +475,37 @@ void igvEscena3D::visualizar(void) {
 	else interpolacionCurva(); //Funcion curva con Hermite.
 	interpolacionEsferica(); //Funcion SLERP.
 	m[12] = r.x; m[13] = r.y; m[14] = r.z; //Traslación desde la matriz.
-	
+
 	glPushMatrix();
 	glMultMatrixf(m);
-		
-		//escaladoNoUniforme(); //Funcion de escalado no uniforme.
-		glPushMatrix();
-			materialNone();
-			glTranslatef(1.55, 0.5, 0);
-			DrawFire();
-			materialNone();
-		glPopMatrix();
-		glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
-		glEnable(GL_TEXTURE_2D);
-			igvTextura tete("textures/tetera.bmp");
-			tete.aplicar();
-			glutSolidTeapot(1); //Visualización del modelo.
-			materialNone();
-		glDisable(GL_TEXTURE_2D);
+	//escaladoNoUniforme(); //Funcion de escalado no uniforme.
+	glPushMatrix();
+	materialNone();
+	glTranslatef(1.55, 0.5, 0);
+	DrawFire();
+	materialNone();
+	glPopMatrix();
+	glMaterialfv(GL_FRONT, GL_EMISSION, color_negro);
+	glEnable(GL_TEXTURE_2D);
+	igvTextura tete("textures/tetera.bmp");
+	tete.aplicar();
+	glutSolidTeapot(1); //Visualización del modelo.
+	materialNone();
+	glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
 
 	glEnable(GL_TEXTURE_2D);
-		igvTextura background("textures/cielo.bmp");
-		background.aplicar();
+	igvTextura background("textures/cielo.bmp");
+	background.aplicar();
 	glBegin(GL_QUADS);
-		glTexCoord2f(1, 0);
-		glVertex3f(-15.5, -20, -12);
-		glTexCoord2f(1, 1);
-		glVertex3f(-15.5, 20, -12);
-		glTexCoord2f(0, 1);
-		glVertex3f(50, 20, -12);
-		glTexCoord2f(0, 0);
-		glVertex3f(50, -20, -12);
+	glTexCoord2f(1, 0);
+	glVertex3f(-15.5, -20, -12);
+	glTexCoord2f(1, 1);
+	glVertex3f(-15.5, 20, -12);
+	glTexCoord2f(0, 1);
+	glVertex3f(50, 20, -12);
+	glTexCoord2f(0, 0);
+	glVertex3f(50, -20, -12);
 	glEnd();
 	glBegin(GL_QUADS);
 	glTexCoord2f(1, 0);
@@ -321,8 +518,45 @@ void igvEscena3D::visualizar(void) {
 	glVertex3f(-15, -20, 50);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
-	
+	//glRotatef(90, 0, 1, 0);
+	//glTranslated(0, 2, 0);
+
 	glPopMatrix();
+
+	float x = 0.8; float y = 2;
+	glBegin(GL_POINTS);
+	glPointSize(18.0);
+	glVertex3f(x, y, 0);
+	glEnd();
+	
+	
+	float angle_O = acos((x*x + y*y - 2 * 2 - 2 * 2) / (2.0f * 2 * 2));
+	float angle = angle_O * 180.0 / M_PI;
+
+	cout << angle << endl;
+	if (angle > 0) {
+		if (brazoD <= angle) 
+			brazoD += 0.2f;
+	}else {
+		if (brazoD >= angle)
+			brazoD -= 0.2f;
+	}
+
+	float angle2 = atan(- (2 * sin(angle_O))*x + (2 + 2 * cos(angle_O)*y) / ( (2 * sin(angle_O))*y + (2 + 2 * cos(angle_O))*x ));
+	angle2 = angle2 * 180.0 / M_PI;
+	if (angle2 < 0)
+		angle2 = angle2 - 90;
+	cout << angle2 << endl;
+	if (angle2 > 0) {
+		if (brazo2D <= angle2)
+			brazo2D += 0.2f;
+	}
+	else {
+		if (brazo2D >= angle2)
+			brazo2D -= 0.2f;
+	}
+	
+	brazo();
 }                              
 
 
